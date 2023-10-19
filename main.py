@@ -1,6 +1,9 @@
 import discord
 import json
 
+# import client from bot, bot.py sets up the client
+from bot import client
+
 # try to load the config file into 'conf' dictionary
 confFileName = "Data/conf.json"
 try:
@@ -23,23 +26,7 @@ if "Token" not in conf:
     print("Refer to documentation for further instructions")
     exit()
 
-# setup discord client
-intents = discord.Intents.default()
-intents.message_content = True
-
-client = discord.Client(intents=intents)
-
-
-# setup on_ready listener
-@client.event
-async def on_ready():
-    print(f'Logged in as {client.user}')
-
-
-# setup on_message event listener
-@client.event
-async def on_message(message):
-    print(f'{message.author}: {message.content}')
 
 # run discord client
-client.run(conf["Token"])
+if __name__ == "__main__":
+    client.run(conf["Token"])
