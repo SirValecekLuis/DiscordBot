@@ -1,9 +1,14 @@
-"""Cog waiting if user writes "tobiáš" in sentence and if yes, writes +1 to counter based on user ID """
+"""Cog that is supposed to add a record to user to database if specific word is triggered """
 import discord
 from discord.ext import commands
 from start import db
 
-counters = [
+"""
+There is no issue to add new counter, the function add_to_counter is made to add a counter to user if the user has
+already a record in the database but without the specified counter. Then just simply fill the arguments which
+are needed for add_to_counter func.
+"""
+COUNTERS = [
     "counter_tobias",
     "counter_poli",
 ]
@@ -25,16 +30,16 @@ def add_to_counter(user_id: int, count: int, counter: str) -> None:
             try:
                 count_from_user = user[counter]  # Obtaining actual counter
                 db.Counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})  # Updating counter
-            except KeyError:    # If the counter is not part of database I add it to user and set to count
+            except KeyError:  # If the counter is not part of database I add it to user and set to count
                 db.Counter.update_one({"id": user_id}, {"$set": {counter: count}})
             return
     else:
         # If user was not found, I will create a new one + add all counters
         db.Counter.insert_one({"id": user_id})
-        for counter_from_list in counters:  # Going through all counters
+        for counter_from_list in COUNTERS:  # Going through all counters
             if counter_from_list == counter:  # If I find the same counter as was specified, I add count to counter
                 db.Counter.update_one({"id": user_id}, {"$set": {counter_from_list: count}})
-            else:   # Else I set counter to 0 bud it is nice to have all records set to 0 immediately
+            else:  # Else I set counter to 0 bud it is nice to have all records set to 0 immediately
                 db.Counter.update_one({"id": user_id}, {"$set": {counter_from_list: 0}})
 
 
