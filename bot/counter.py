@@ -13,7 +13,7 @@ COUNTERS = [
     "counter_poli",
 ]
 
-
+# TODO: REWRITE NA ASYNC
 def add_to_counter(user_id: int, count: int, counter: str) -> None:
     """
     Function goes through all users and if user has a record, +1 is added to specific counter, if record is not
