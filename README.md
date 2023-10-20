@@ -1,6 +1,16 @@
 # Discord bot pro server VŠB - informatika :fire:
 
-> Funckionalita? Žádná. :cry:
+## Funkcionality:
+Počítání slov "tobiáš" a "olivk*" či "poli" ve zprávě od uživatele a zapsání do DB na základě ID
+
+## TODO: 
+Přidat emote když někdo napíše zmíněné slovo z counteru
+
+Přidat loggování na errors (.log/zasílání zpráv do PM či nějaké loggování do speciálního DC channelu?)
+
+Na základě commandu vypsat uživateli kolikrát použil jaké slovo a má ho v counteru (do PM nebo do chatu kde se použije command...?)
+
+Upravit strukturu projektu v README na aktuální + upravit popis projektu a popsat co se používá a co k čemu slouží 
 
 ## Struktura projektu
 ### Soubory jsou strukturovány tímhle stylem
@@ -23,11 +33,4 @@ discordbot/
 └── data/
     │
     └── conf.json
-```
-
-## Důležité je nastavit discord token v  `Data/conf.json`
-```json
-{
-    "Token": "your token goes here"
-}
 ```
