@@ -11,5 +11,6 @@ class LoginInfo(commands.Cog):
     async def on_ready(self) -> None:
         print(f"Logged in as {self.bot.user}")
 
+
 def setup(bot: discord.Bot) -> None:
     bot.add_cog(LoginInfo(bot))

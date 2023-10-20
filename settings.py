@@ -6,8 +6,10 @@ class Settings(BaseSettings):
     """Class with settings."""
 
     bot_token: str
+    database_login: str
 
     # loads from .env
     model_config = SettingsConfigDict(env_file=".env")
+
 
 settings = Settings()
