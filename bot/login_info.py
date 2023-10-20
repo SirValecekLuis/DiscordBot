@@ -1,5 +1,7 @@
+"""Cog that prints info about the bot logging in."""
 import discord
 from discord.ext import commands
+
 
 class LoginInfo(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:

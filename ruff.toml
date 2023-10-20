@@ -4,6 +4,9 @@ select = ["F", "E", "W", "C90", "I", "N", "D", "UP", "ANN", "ASYNC", "S", "BLE",
           "FBT", "B", "A", "COM", "C4", "T10", "EM", "ISC", "ICN", "G", "PIE", "T20",
           "Q", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "ERA", "PGH", "PL",
           "TRY", "FLY", "PERF", "FURB", "LOG", "RUF"]
+
+ignore = ["ANN101"]
+
 exclude = [
     "venv",
     ".mypy_cache",
