@@ -18,6 +18,7 @@ bot = commands.Bot(intents=intents)
 cog_list = [
     "login_info",
     "counter",
+    "auto_voice",
 ]
 
 # load every cog in cog_list
