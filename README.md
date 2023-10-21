@@ -8,8 +8,6 @@ Přidat emote když někdo napíše zmíněné slovo z counteru
 
 Přidat loggování na errors (.log/zasílání zpráv do PM či nějaké loggování do speciálního DC channelu?)
 
-Na základě commandu vypsat uživateli kolikrát použil jaké slovo a má ho v counteru (do PM nebo do chatu kde se použije command...?)
-
 Upravit strukturu projektu v README na aktuální + upravit popis projektu a popsat co se používá a co k čemu slouží 
 
 ## Struktura projektu
