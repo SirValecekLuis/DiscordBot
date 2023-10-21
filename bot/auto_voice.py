@@ -23,7 +23,7 @@ class AutoVoice(commands.Cog):
             joined_automatic_voice_channel = after.channel.id == self.channel_id
 
             if joined_automatic_voice_channel:
-                await create_new_channel(member)
+                await create_new_channel(member, after.channel.category)
 
         except AttributeError:
             pass
