@@ -10,6 +10,8 @@ Přidat loggování na errors (.log/zasílání zpráv do PM či nějaké loggov
 
 Upravit strukturu projektu v README na aktuální + upravit popis projektu a popsat co se používá a co k čemu slouží 
 
+Přidat command /help pro bota
+
 ## Struktura projektu
 ### Soubory jsou strukturovány tímhle stylem
 ```
