@@ -17,6 +17,19 @@ COUNTERS = {"counter_tobias": "Tobiáš",
 poli_words = ["poli", "polim", "poliho", "polimu"]
 
 
+async def find_user_from_database(user_id: int) -> None or dict:
+    """
+    Function is supposed to find user from database based on ID and return a record from DB else None
+    :param user_id: ID of discord member
+    :return: None if no record is found else record (dictionary)
+    """
+    for user in db.Counter.find():
+        if user_id == user["id"]:
+            return user
+    else:
+        return None
+
+
 async def add_to_counter(user_id: int, count: int, counter: str) -> None:
     """
     Function goes through all users and if user has a record, +1 is added to specific counter, if record is not
@@ -28,22 +41,22 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
     :return: None
     """
 
-    for user in db.Counter.find():
-        if user["id"] == user_id:
-            try:
-                count_from_user = user[counter]  # Obtaining actual counter
-                db.Counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})  # Updating counter
-            except KeyError:  # If the counter is not part of database I add it to user and set to count
-                db.Counter.update_one({"id": user_id}, {"$set": {counter: count}})
-            return
+    user = await find_user_from_database(user_id)  # Trying to find user based on user id, returns record or None
+    if user:
+        try:
+            count_from_user = user[counter]  # Obtaining actual counter
+            db.Counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})
+        except KeyError:  # If the counter is not part of database I add it to user and set to count
+            db.Counter.update_one({"id": user_id}, {"$set": {counter: count}})
+        return
     else:
         # If user was not found, I will create a new one + add all counters
         db.Counter.insert_one({"id": user_id})
-        for counter_from_list in COUNTERS.keys():
-            if counter_from_list == counter:  # If I find the same counter as was specified, I add count to counter
-                db.Counter.update_one({"id": user_id}, {"$set": {counter_from_list: count}})
-            else:  # Else I set counter to 0 bud it is nice to have all records set to 0 immediately
-                db.Counter.update_one({"id": user_id}, {"$set": {counter_from_list: 0}})
+        for counter_from_keys in COUNTERS.keys():
+            if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
+                db.Counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
+            else:
+                db.Counter.update_one({"id": user_id}, {"$set": {counter_from_keys: 0}})
 
 
 async def count_words(message: str, words: list) -> int:
@@ -60,14 +73,6 @@ async def count_words(message: str, words: list) -> int:
         count += message.count(word)
 
     return count
-
-
-async def find_user(user_id: int) -> None or dict:
-    for user in db.Counter.find():
-        if user_id == user["id"]:
-            return user
-    else:
-        return None
 
 
 class Counter(commands.Cog):
@@ -90,7 +95,7 @@ class Counter(commands.Cog):
         if member:  # If optional parameter is filled then I switch ID to tagged member
             user_id = member.id
 
-        user_from_database = await find_user(user_id)  # User from database
+        user_from_database = await find_user_from_database(user_id)  # User from database
 
         if user_from_database is None:  # If user has no record in database
             if member:
