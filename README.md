@@ -1,19 +1,11 @@
-# Discord bot pro server VŠB - informatika :fire:
+# Discord bot for VŠB - informatika :fire:
 
-## Funkcionality:
-Počítání slov "tobiáš" a "olivk*" či "poli" ve zprávě od uživatele a zapsání do DB na základě ID
+## Functionality:
+Counting "tobiáš" || "olivk*" || "poli*" from the DC messages and based on the user ID then recorded in DB
 
-## TODO: 
-Přidat emote když někdo napíše zmíněné slovo z counteru
+/counters @user(optional) -> Bot sends a message only shown to you with all counters available for your record in DB. When used with a parameter it's going to print the user's statistics instead.
 
-Přidat loggování na errors (.log/zasílání zpráv do PM či nějaké loggování do speciálního DC channelu?)
-
-Upravit strukturu projektu v README na aktuální + upravit popis projektu a popsat co se používá a co k čemu slouží 
-
-Přidat command /help pro bota
-
-## Struktura projektu
-### Soubory jsou strukturovány tímhle stylem
+## Structure
 ```
 discordbot/
 │
