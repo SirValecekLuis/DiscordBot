@@ -5,7 +5,7 @@ import discord
 async def create_new_channel(
     user: discord.Member,
     category: discord.CategoryChannel,
-) -> discord.VoiceChannel:
+) -> int:
 
     discord_server = user.guild
 
@@ -22,4 +22,4 @@ async def create_new_channel(
     await user.move_to(created_channel)
 
     # return the created channel
-    return created_channel
+    return created_channel.id

@@ -6,9 +6,10 @@ from bot.auto_voice_ok.creation import create_new_channel
 
 
 class AutoVoice(commands.Cog):
+
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
-        self.channel_id = 1165049656644993024
+        self.channel_id = -1
         self.channel_list = []
 
     @commands.Cog.listener()
@@ -16,6 +17,9 @@ class AutoVoice(commands.Cog):
                                     member: discord.Member,
                                     before: discord.VoiceState,
                                     after: discord.VoiceState) -> None:
+        # check if a automatic voice channel is set, if not dont do anything
+        if self.channel_id == -1:
+            return
 
         # check if the voice channel joined is the automatic voice channel
         try:
@@ -33,6 +37,12 @@ class AutoVoice(commands.Cog):
         all_left_automatic_voice_channel = before.channel in self.channel_list
         if all_left_automatic_voice_channel and not before.channel.members:
             await before.channel.delete()
+
+    # set the automatic voice channel id to the one specified by the user
+    @commands.slash_command(name="setautovoicechannel")
+    async def set_auto_voice(self, ctx, auto_channel_id: str) -> None:
+        self.channel_id = int(auto_channel_id)
+        await ctx.respond("Automatic voice channel set!")
 
 
 def setup(bot: discord.Bot) -> None:
