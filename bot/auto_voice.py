@@ -12,6 +12,16 @@ class AutoVoice(commands.Cog):
         self.channel_id = -1
         self.channel_list = []
 
+    # clear empty voice channels that were genereted before this session started
+    @commands.Cog.listener()
+    async def on_ready(self) -> None:
+        for each in self.channel_list:
+            channel = self.bot.get_channel(each)
+
+            # if channel doesnt have any members connected delete it
+            if not channel.members:
+                await each.channel.delete()
+
     @commands.Cog.listener()
     async def on_voice_state_update(self,
                                     member: discord.Member,
@@ -34,8 +44,14 @@ class AutoVoice(commands.Cog):
 
         # check if the channel the member left was automatically created
         # and if the channel doesn't have any members connected, delete it
-        all_left_automatic_voice_channel = before.channel in self.channel_list
-        if all_left_automatic_voice_channel and not before.channel.members:
+
+        try:
+            is_automatic_voice_channel = before.channel.id in self.channel_list
+
+        except AttributeError:
+            is_automatic_voice_channel = False
+
+        if is_automatic_voice_channel and not before.channel.members:
             await before.channel.delete()
 
     # set the automatic voice channel id to the one specified by the user
