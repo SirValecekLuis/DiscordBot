@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 
-from bot.auto_voice_ok.creation import create_new_channel
+from bot.auto_voice_pkg.creation import create_new_channel
 
 
 class AutoVoice(commands.Cog):
