@@ -1,5 +1,6 @@
 """Script to start the bot."""
 import discord
+from discord.ext import commands
 from pymongo import MongoClient
 from settings import settings
 
@@ -11,7 +12,7 @@ db = client["DiscordBot"]  # db.Counter to access section in DB for counter
 intents = discord.Intents.all()
 
 # create discord client class instance
-bot = discord.Bot(intents=intents)
+bot = commands.Bot(intents=intents)
 
 # list of all cog modules
 cog_list = [
