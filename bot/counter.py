@@ -62,6 +62,15 @@ async def count_words(message: str, words: list) -> int:
     return count
 
 
+async def add_emote(message: discord.Message, emote_name: str) -> None:
+    try:
+        guild = message.guild
+        emoji = discord.utils.get(guild.emojis, name=emote_name)
+        await message.add_reaction(emoji)
+    except discord.errors.InvalidArgument as e:
+        print(e)
+
+
 class Counter(commands.Cog):
     def __init__(self, bot_ref: discord.Bot) -> None:
         self.bot = bot_ref
@@ -112,8 +121,11 @@ class Counter(commands.Cog):
 
         if tobias_count > 0:
             await add_to_counter(message.author.id, tobias_count, "counter_tobias")
+            await add_emote(message, "TrollDespair")
+            await add_emote(message, "MonkaGun")
         if poli_count > 0:
             await add_to_counter(message.author.id, poli_count, "counter_poli")
+            await add_emote(message, "olivkacursed")
 
 
 def setup(bot: discord.Bot) -> None:
