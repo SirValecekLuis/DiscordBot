@@ -105,9 +105,10 @@ class Counter(commands.Cog):
         # Creating message for bot to send and asking for data from database
         text = "Tvoje počítadla\n"
         for counter, counter_text in COUNTERS.items():
-            try:
-                text += f"{counter_text}: {user_from_database[counter]}\n"
-            except KeyError:
+            count_from_user = user_from_database.get(counter)
+            if count_from_user:
+                text += f"{counter_text}: {count_from_user}\n"
+            else:
                 text += f"{counter_text}: {0}\n"
 
         await ctx.respond(text, ephemeral=True)
