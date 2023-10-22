@@ -8,13 +8,13 @@ from start import db
 There is no issue to add a new counter, the function add_to_counter is made to add a counter to user if the user has
 already a record in the database but without the specified counter. Then just simply fill the arguments which
 are needed for add_to_counter func.
-COUNTER = {"name_in_database": "name_to_show_for_user"}
+COUNTERS = {"name_in_database": "name_to_show_for_user"}
 """
 COUNTERS = {"counter_tobias": "Tobiáš",
             "counter_poli": "Poli/Olivka",
             }
 
-poli_words = ["poli", "polim", "poliho", "polimu"]
+POLI_WORDS = ["poli", "polim", "poliho", "polimu"]
 
 
 async def add_to_counter(user_id: int, count: int, counter: str) -> None:
@@ -36,14 +36,14 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
         except KeyError:  # If the counter is not part of database I add it to user and set to count
             db.counter.update_one({"id": user_id}, {"$set": {counter: count}})
         return
-    else:
-        # If user was not found, I will create a new one + add all counters
-        db.counter.insert_one({"id": user_id})
-        for counter_from_keys in COUNTERS.keys():
-            if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
-                db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
-            else:
-                db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: 0}})
+
+    # If user was not found, I will create a new one + add all counters
+    db.counter.insert_one({"id": user_id})
+    for counter_from_keys in COUNTERS.keys():
+        if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
+            db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
+        else:
+            db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: 0}})
 
 
 async def count_words(message: str, words: list) -> int:
@@ -88,7 +88,7 @@ class Counter(commands.Cog):
             if member:
                 await ctx.respond(f"Uživatel {member.mention} nemá žádný záznam.", ephemeral=True)
             else:
-                await ctx.respond(f"Nemáš žádný záznam", ephemeral=True)
+                await ctx.respond("Nemáš žádný záznam", ephemeral=True)
             return
 
         # Creating message for bot to send and asking for data from database
@@ -108,7 +108,7 @@ class Counter(commands.Cog):
 
         lowered_message = message.content.lower()
         tobias_count = lowered_message.count("tobiáš")
-        poli_count = await count_words(lowered_message, poli_words) + lowered_message.count("olivk")
+        poli_count = await count_words(lowered_message, POLI_WORDS) + lowered_message.count("olivk")
 
         if tobias_count > 0:
             await add_to_counter(message.author.id, tobias_count, "counter_tobias")
