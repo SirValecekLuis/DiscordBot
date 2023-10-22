@@ -3,31 +3,19 @@ import discord
 from discord.ext import commands
 from discord.commands import Option
 from start import db
+from error_handling import send_error_message_to_user
 
 """
 There is no issue to add a new counter, the function add_to_counter is made to add a counter to user if the user has
 already a record in the database but without the specified counter. Then just simply fill the arguments which
 are needed for add_to_counter func.
-COUNTER = {"name_in_database": "name_to_show_for_user"}
+COUNTERS = {"name_in_database": "name_to_show_for_user"}
 """
 COUNTERS = {"counter_tobias": "Tobiáš",
             "counter_poli": "Poli/Olivka",
             }
 
-poli_words = ["poli", "polim", "poliho", "polimu"]
-
-
-async def find_user_from_database(user_id: int) -> None or dict:
-    """
-    Function is supposed to find user from database based on ID and return a record from DB else None
-    :param user_id: ID of discord member
-    :return: None if no record is found else record (dictionary)
-    """
-    for user in db.Counter.find():
-        if user_id == user["id"]:
-            return user
-    else:
-        return None
+POLI_WORDS = ["poli", "polim", "poliho", "polimu"]
 
 
 async def add_to_counter(user_id: int, count: int, counter: str) -> None:
@@ -41,22 +29,22 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
     :return: None
     """
 
-    user = await find_user_from_database(user_id)  # Trying to find user based on user id, returns record or None
+    user = await db.find_user_from_database(user_id)  # Trying to find user based on user id, returns record or None
     if user:
         try:
             count_from_user = user[counter]  # Obtaining actual counter
-            db.Counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})
+            db.counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})
         except KeyError:  # If the counter is not part of database I add it to user and set to count
-            db.Counter.update_one({"id": user_id}, {"$set": {counter: count}})
+            db.counter.update_one({"id": user_id}, {"$set": {counter: count}})
         return
-    else:
-        # If user was not found, I will create a new one + add all counters
-        db.Counter.insert_one({"id": user_id})
-        for counter_from_keys in COUNTERS.keys():
-            if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
-                db.Counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
-            else:
-                db.Counter.update_one({"id": user_id}, {"$set": {counter_from_keys: 0}})
+
+    # If user was not found, I will create a new one + add all counters
+    db.counter.insert_one({"id": user_id})
+    for counter_from_keys in COUNTERS.keys():
+        if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
+            db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
+        else:
+            db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: 0}})
 
 
 async def count_words(message: str, words: list) -> int:
@@ -75,12 +63,22 @@ async def count_words(message: str, words: list) -> int:
     return count
 
 
+async def add_emote(message: discord.Message, emote_name: str) -> None:
+    try:
+        guild = message.guild
+        emoji = discord.utils.get(guild.emojis, name=emote_name)
+        await message.add_reaction(emoji)
+    except discord.errors.InvalidArgument as e:
+        print(e)
+
+
 class Counter(commands.Cog):
     def __init__(self, bot_ref: discord.Bot) -> None:
         self.bot = bot_ref
 
     @commands.slash_command(name="counters", description="Vypíše počítadla, @uživatel pro vypsání jeho statistik")
-    async def counters(self, ctx, member: Option(discord.Member, "Uživatel", required=False, default=None)) -> None:
+    async def counters(self, ctx: discord.ApplicationContext,
+                       member: Option(discord.Member, "Uživatel", required=False, default=None)) -> None:
         """
         Counters is a slash command which can be used with or without 1 optional parameter.
         -> If command is used without a parameter, then author of command is found in database and gets message
@@ -90,18 +88,17 @@ class Counter(commands.Cog):
         :param member: OPTIONAL, tagged member to show his statistics
         :return: None
         """
-
         user_id = ctx.user.id  # ID of author
         if member:  # If optional parameter is filled then I switch ID to tagged member
             user_id = member.id
 
-        user_from_database = await find_user_from_database(user_id)  # User from database
+        user_from_database = await db.find_user_from_database(user_id)  # User from database
 
         if user_from_database is None:  # If user has no record in database
             if member:
                 await ctx.respond(f"Uživatel {member.mention} nemá žádný záznam.", ephemeral=True)
             else:
-                await ctx.respond(f"Nemáš žádný záznam", ephemeral=True)
+                await ctx.respond("Nemáš žádný záznam", ephemeral=True)
             return
 
         # Creating message for bot to send and asking for data from database
@@ -121,12 +118,18 @@ class Counter(commands.Cog):
 
         lowered_message = message.content.lower()
         tobias_count = lowered_message.count("tobiáš")
-        poli_count = await count_words(lowered_message, poli_words) + lowered_message.count("olivk")
+        poli_count = await count_words(lowered_message, POLI_WORDS) + lowered_message.count("olivk")
 
         if tobias_count > 0:
             await add_to_counter(message.author.id, tobias_count, "counter_tobias")
+            await add_emote(message, "TrollDespair")
+            await add_emote(message, "MonkaGun")
         if poli_count > 0:
             await add_to_counter(message.author.id, poli_count, "counter_poli")
+            await add_emote(message, "olivkacursed")
+
+    async def on_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError):
+        await send_error_message_to_user(ctx, error)
 
 
 def setup(bot: discord.Bot) -> None:
