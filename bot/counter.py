@@ -31,10 +31,10 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
 
     user = await db.find_user_from_database(user_id)  # Trying to find user based on user id, returns record or None
     if user:
-        try:
-            count_from_user = user[counter]  # Obtaining actual counter
+        count_from_user = user.get(counter)  # Obtaining actual counter
+        if count_from_user:
             db.counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})
-        except KeyError:  # If the counter is not part of database I add it to user and set to count
+        else:
             db.counter.update_one({"id": user_id}, {"$set": {counter: count}})
         return
 
@@ -69,7 +69,8 @@ async def add_emote(message: discord.Message, emote_name: str) -> None:
         emoji = discord.utils.get(guild.emojis, name=emote_name)
         await message.add_reaction(emoji)
     except discord.errors.InvalidArgument as e:
-        print(e)
+        # TODO: maybe add logging for this specific error as well? (There are more TODOs of this type in other files)
+        print(f"You can ignore this warning, it comes from typing Tobiáš or Poli with missing emote.\n{e}")
 
 
 class Counter(commands.Cog):
