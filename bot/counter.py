@@ -3,6 +3,7 @@ import discord
 from discord.ext import commands
 from discord.commands import Option
 from start import db
+from error_handling import send_error_message_to_user
 
 """
 There is no issue to add a new counter, the function add_to_counter is made to add a counter to user if the user has
@@ -76,7 +77,8 @@ class Counter(commands.Cog):
         self.bot = bot_ref
 
     @commands.slash_command(name="counters", description="Vypíše počítadla, @uživatel pro vypsání jeho statistik")
-    async def counters(self, ctx, member: Option(discord.Member, "Uživatel", required=False, default=None)) -> None:
+    async def counters(self, ctx: discord.ApplicationContext,
+                       member: Option(discord.Member, "Uživatel", required=False, default=None)) -> None:
         """
         Counters is a slash command which can be used with or without 1 optional parameter.
         -> If command is used without a parameter, then author of command is found in database and gets message
@@ -86,7 +88,6 @@ class Counter(commands.Cog):
         :param member: OPTIONAL, tagged member to show his statistics
         :return: None
         """
-
         user_id = ctx.user.id  # ID of author
         if member:  # If optional parameter is filled then I switch ID to tagged member
             user_id = member.id
@@ -126,6 +127,9 @@ class Counter(commands.Cog):
         if poli_count > 0:
             await add_to_counter(message.author.id, poli_count, "counter_poli")
             await add_emote(message, "olivkacursed")
+
+    async def on_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError):
+        await send_error_message_to_user(ctx, error)
 
 
 def setup(bot: discord.Bot) -> None:

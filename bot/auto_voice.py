@@ -2,6 +2,7 @@
 import discord
 from discord.ext import commands
 from start import db
+from error_handling import send_error_message_to_user
 
 
 class AutoVoice(commands.Cog):
@@ -73,7 +74,7 @@ class AutoVoice(commands.Cog):
     # set the automatic voice master ID to the one specified by the user
     @commands.slash_command(name="setautovoicechannel")
     @commands.has_permissions(administrator=True)
-    async def set_auto_voice(self, ctx, auto_channel_id: str, storage: str) -> None:
+    async def set_auto_voice(self, ctx: discord.ApplicationContext, auto_channel_id: str, storage: str) -> None:
         try:
             auto_channel_id = int(auto_channel_id)
         except ValueError:
@@ -96,9 +97,12 @@ class AutoVoice(commands.Cog):
 
     # handle command errors
     @set_auto_voice.error
-    async def admin_command_error(self, ctx, error: commands.CommandError):
+    async def admin_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
             await ctx.respond("You do not have the required permissions to run this command.")
+
+    async def on_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError):
+        await send_error_message_to_user(ctx, error)
 
 
 def setup(bot: discord.Bot) -> None:
