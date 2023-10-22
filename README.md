@@ -9,20 +9,17 @@ Counting "tobiáš" || "olivk*" || "poli*" from the DC messages and based on the
 ```
 discordbot/
 │
-├── src/
-│   │
-│   ├── start.py
-│   │
-│   └── bot/
-│       │   
-│       ├── package/
-│       │   │
-│       │   ├── __init__.py
-│       │   └── module.py
-│       ├── __init__.py
-│       ├── bot.py
-│       └── token.py
-└── data/
+├── start.py
+├── settings.py
+│── database.py
+│── error_handling.py
+│
+│── bot/
     │
-    └── conf.json
+    ├── __init__.py
+    │── auto_voice.py
+    │── counter.py
+    │── login_info.py
+    │
+
 ```
