@@ -1,21 +1,20 @@
 """Cog that automatically manages voice channels."""
 import discord
 from discord.ext import commands
-from typing import Optional
+from start import db
 
 
 class AutoVoice(commands.Cog):
 
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
-        self.channel_id = get_auto_voice_master_id()
+        self.channel_id = db.voice_channel_id
         self.channel_list = []
 
-    # clear empty voice channels that were genereted before this session started
+    # clear empty voice channels that were generated before this session started
     # TODO TEST IF THIS EVEN WORKS!!!
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-
         # try to get the channel category of the automatic voice channel
         try:
             auto_voice_category = self.bot.get_channel(self.channel_id).category
@@ -24,22 +23,20 @@ class AutoVoice(commands.Cog):
             return
 
         # get every voice channel in the auto_voice_category
-        for each in auto_voice_category.voice_channels:
-            channel = self.bot.get_channel(each)
-
+        for channel in auto_voice_category.voice_channels:
             is_auto_voice_master = channel.id == self.channel_id
 
-            # if channel doesnt have any members connected
-            # and if it isn't the auto voice creator it self, delete it
+            # if channel doesn't have any members connected
+            # and if it isn't the auto voice creator itself, delete it
             if not channel.members and not is_auto_voice_master:
-                await each.channel.delete()
+                await channel.delete()
 
     @commands.Cog.listener()
     async def on_voice_state_update(self,
                                     member: discord.Member,
                                     before: discord.VoiceState,
                                     after: discord.VoiceState) -> None:
-        # check if a automatic voice channel is set, if not dont do anything
+        # check if an automatic voice channel is set, if not don't do anything
         if self.channel_id is None:
             return
 
@@ -62,7 +59,7 @@ class AutoVoice(commands.Cog):
             is_auto_voice_master = before.channel.id == self.channel_id
 
             # check if the channel the user left is from the automatic voice category
-            # and if it isnt the channel from which the voice channels are created
+            # and if it isn't the channel from which the voice channels are created
             can_be_deleted = is_automatic_voice_channel and not is_auto_voice_master
 
         except AttributeError:
@@ -76,15 +73,22 @@ class AutoVoice(commands.Cog):
     # set the automatic voice master ID to the one specified by the user
     @commands.slash_command(name="setautovoicechannel")
     @commands.has_permissions(administrator=True)
-    async def set_auto_voice(self, ctx: commands.Context, auto_channel_id: str, storage: str) -> None:
-        # check if the id should be stored localy
+    async def set_auto_voice(self, ctx, auto_channel_id: str, storage: str) -> None:
+        try:
+            auto_channel_id = int(auto_channel_id)
+        except ValueError:
+            await ctx.respond("Invalid value for auto_channel_id")
+            return
+
+        # check if the id should be stored locally
         if storage == "local":
-            self.channel_id = int(auto_channel_id)
+            self.channel_id = auto_channel_id
             await ctx.respond("Automatic voice channel set locally!")
             return
 
-        # TODO implement ID storing to database
-        elif storage == "db":
+        if storage == "db":
+            db.voice_channel_id = auto_channel_id
+            self.channel_id = auto_channel_id
             await ctx.respond("Automatic voice channel set in the database!")
             return
 
@@ -92,7 +96,7 @@ class AutoVoice(commands.Cog):
 
     # handle command errors
     @set_auto_voice.error
-    async def admin_command_error(self, ctx: commands.Context, error: commands.CommandError):
+    async def admin_command_error(self, ctx, error: commands.CommandError):
         if isinstance(error, commands.MissingPermissions):
             await ctx.respond("You do not have the required permissions to run this command.")
 
@@ -102,10 +106,9 @@ def setup(bot: discord.Bot) -> None:
 
 
 async def create_new_channel(
-    user: discord.Member,
-    category: discord.CategoryChannel,
+        user: discord.Member,
+        category: discord.CategoryChannel,
 ) -> int:
-
     discord_server = user.guild
 
     # create the voice channel name from username or nickname
@@ -122,8 +125,3 @@ async def create_new_channel(
 
     # return the created channel
     return created_channel.id
-
-# TODO implement the retrieval of voice master ID from the database
-def get_auto_voice_master_id() -> Optional[int]:
-
-    return None
