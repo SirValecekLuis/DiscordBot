@@ -20,6 +20,7 @@ cog_list = [
     "counter",
     "poop",
     "wakeup",
+    "auto_voice",
 ]
 
 # load every cog in cog_list
