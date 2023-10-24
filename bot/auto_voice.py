@@ -1,6 +1,7 @@
 """Cog that automatically manages voice channels."""
 import discord
 from discord.ext import commands
+
 from start import db
 from error_handling import send_error_message_to_user
 

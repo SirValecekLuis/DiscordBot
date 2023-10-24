@@ -1,7 +1,8 @@
 """Script to start the bot."""
 import discord
-from database import Database
 from discord.ext import commands
+
+from database import Database
 from settings import settings
 
 # setup discord client intents

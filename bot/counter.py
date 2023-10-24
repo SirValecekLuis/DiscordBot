@@ -1,7 +1,8 @@
-"""Cog that is supposed to add a record to user to database if specific word is triggered """
+"""Cog that is supposed to add a record to user to database if specific word is triggered."""
 import discord
-from discord.ext import commands
 from discord.commands import Option
+from discord.ext import commands
+
 from start import db
 from error_handling import send_error_message_to_user
 
@@ -19,16 +20,15 @@ POLI_WORDS = ["poli", "polim", "poliho", "polimu"]
 
 
 async def add_to_counter(user_id: int, count: int, counter: str) -> None:
-    """
-    Function goes through all users and if user has a record, +1 is added to specific counter, if record is not
-    found a new record is created.
+    """Find user's record and add count to their counter.
+
+    If the user doesn't have any record in the database, a new one is created.
 
     :param user_id: ID of author from discord message
     :param count: amount of counted words which should be added
     :param counter: string based on which counter is supposed to be added (via counters list above)
     :return: None
     """
-
     user = await db.find_user_from_database(user_id)  # Trying to find user based on user id, returns record or None
     if user:
         count_from_user = user.get(counter)  # Obtaining actual counter
@@ -40,7 +40,7 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
 
     # If user was not found, I will create a new one + add all counters
     db.counter.insert_one({"id": user_id})
-    for counter_from_keys in COUNTERS.keys():
+    for counter_from_keys in COUNTERS:
         if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
             db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
         else:
@@ -48,8 +48,8 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
 
 
 async def count_words(message: str, words: list) -> int:
-    """
-    this function is supposed how many specified words are in given message.
+    """Count the amount of words in message.
+
     :param message: text from discord message
     :param words: list of words which are to be found and counted from message
     :return: amount of found words
@@ -64,29 +64,36 @@ async def count_words(message: str, words: list) -> int:
 
 
 async def add_emote(message: discord.Message, emote_name: str) -> None:
+    """Add a reaction to the message.
+
+    :param message: Discord message
+    :param emote_name: name of the emote to add
+    """
     try:
         guild = message.guild
         emoji = discord.utils.get(guild.emojis, name=emote_name)
         await message.add_reaction(emoji)
     except discord.errors.InvalidArgument as e:
-        # TODO: maybe add logging for this specific error as well? (There are more TODOs of this type in other files)
+        # TODO: add error logging for this
         print(f"You can ignore this warning, it comes from typing Tobiáš or Poli with missing emote.\n{e}")
 
 
 class Counter(commands.Cog):
+    """Cog to initialize word counter."""
+
     def __init__(self, bot_ref: discord.Bot) -> None:
         self.bot = bot_ref
 
     @commands.slash_command(name="counters", description="Vypíše počítadla, @uživatel pro vypsání jeho statistik")
     async def counters(self, ctx: discord.ApplicationContext,
                        member: Option(discord.Member, "Uživatel", required=False, default=None)) -> None:
-        """
-        Counters is a slash command which can be used with or without 1 optional parameter.
-        -> If command is used without a parameter, then author of command is found in database and gets message
-        from bot with statistics
-        -> If command has a parameter then statistics of tagged user are shown from bot
+        """Slash command that writes out counter of a specific user.
+
+        If the member option is provided, the requested member is queried from the database. If not provided, the
+        member calling the command is queried.
+
         :param ctx: context of slash command
-        :param member: OPTIONAL, tagged member to show his statistics
+        :param member: tagged member to show his statistics
         :return: None
         """
         user_id = ctx.user.id  # ID of author
@@ -106,7 +113,7 @@ class Counter(commands.Cog):
         text = "Tvoje počítadla\n"
         for counter, counter_text in COUNTERS.items():
             count_from_user = user_from_database.get(counter)
-            if count_from_user:
+            if count_from_user is None:
                 text += f"{counter_text}: {count_from_user}\n"
             else:
                 text += f"{counter_text}: {0}\n"

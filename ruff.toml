@@ -5,7 +5,8 @@ select = ["F", "E", "W", "C90", "I", "N", "D", "UP", "ANN", "ASYNC", "S", "BLE",
           "Q", "RSE", "RET", "SLF", "SIM", "TID", "TCH", "ARG", "ERA", "PGH", "PL",
           "TRY", "FLY", "PERF", "FURB", "LOG", "RUF"]
 
-ignore = ["ANN101"]
+# docstrings in __init__, classes and public methods and functions
+ignore = ["ANN101", "D107", "D101", "D102", "D103"]
 
 exclude = [
     "venv",
