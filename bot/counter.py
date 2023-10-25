@@ -1,7 +1,7 @@
 """Cog that is supposed to add a record to user to database if specific word is triggered."""
 import discord
-from discord.commands import Option
 from discord.ext import commands
+from discord.commands import Option
 
 from start import db
 from error_handling import send_error_message_to_user
@@ -113,7 +113,7 @@ class Counter(commands.Cog):
         text = "Tvoje počítadla\n"
         for counter, counter_text in COUNTERS.items():
             count_from_user = user_from_database.get(counter)
-            if count_from_user is None:
+            if count_from_user is not None:
                 text += f"{counter_text}: {count_from_user}\n"
             else:
                 text += f"{counter_text}: {0}\n"
@@ -137,7 +137,7 @@ class Counter(commands.Cog):
             await add_to_counter(message.author.id, poli_count, "counter_poli")
             await add_emote(message, "olivkacursed")
 
-    async def on_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError):
+    async def cog_command_error(self, ctx: discord.ApplicationContext, error: discord.DiscordException) -> None:
         await send_error_message_to_user(ctx, error)
 
 
