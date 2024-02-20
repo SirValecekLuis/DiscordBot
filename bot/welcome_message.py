@@ -2,15 +2,12 @@
 import discord
 from discord.ext import commands
 
-welcome_str = "Vítej na Discord serveru"
+welcome_str = "Cus picus"
 
 
 class WelcomeMessage(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
-
-
-
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
@@ -21,6 +18,7 @@ class WelcomeMessage(commands.Cog):
         :param member: member that joined the discord server
         :return: None
         """
+
 
 def setup(bot: discord.Bot) -> None:
     bot.add_cog(WelcomeMessage(bot))
