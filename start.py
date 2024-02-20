@@ -19,6 +19,7 @@ cog_list = [
     "login_info",
     "counter",
     "auto_voice",
+    "welcome_message",
 ]
 
 # load every cog in cog_list
