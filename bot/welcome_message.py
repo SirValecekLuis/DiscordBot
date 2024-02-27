@@ -2,7 +2,7 @@
 import discord
 from discord.ext import commands
 
-welcome_str = "Cus picus"
+WELCOME_STR = "Cus picus"
 
 
 class WelcomeMessage(commands.Cog):
@@ -11,7 +11,7 @@ class WelcomeMessage(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member) -> None:
-        await member.send(content=welcome_str)
+        await member.send(content=WELCOME_STR)
 
         """Listener that sends user a message on joining a discord server.
 
