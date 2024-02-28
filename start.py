@@ -20,6 +20,7 @@ cog_list = [
     "counter",
     "auto_voice",
     "welcome_message",
+    "leaderboard",
 ]
 
 # load every cog in cog_list
