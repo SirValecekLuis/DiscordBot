@@ -52,9 +52,7 @@ class CounterLeaderboard(commands.Cog):
                 tmp_limit = int(limit_str)
 
                 # apply hard limit of 20
-                if tmp_limit > 20:
-                    limit = 20
-                else:
+                if tmp_limit < 20:
                     limit = tmp_limit
             except ValueError:
                 # notify user of failure to parse their limit to int
