@@ -14,12 +14,12 @@ class AutoVoice(commands.Cog):
         self.channel_list = []
 
     # clear empty voice channels that were generated before this session started
-    # TODO TEST IF THIS EVEN WORKS!!!
     @commands.Cog.listener()
     async def on_ready(self) -> None:
         # try to get the channel category of the automatic voice channel
         try:
-            auto_voice_category = self.bot.get_channel(self.channel_id).category
+            auto_voice_category = self.bot.get_channel(
+                self.channel_id).category
 
         except AttributeError:
             return
@@ -55,7 +55,8 @@ class AutoVoice(commands.Cog):
 
         try:
             # get the category of automatic voice channels
-            auto_voice_category = self.bot.get_channel(self.channel_id).category
+            auto_voice_category = self.bot.get_channel(
+                self.channel_id).category
 
             is_automatic_voice_channel = before.channel in auto_voice_category.voice_channels
             is_auto_voice_master = before.channel.id == self.channel_id
