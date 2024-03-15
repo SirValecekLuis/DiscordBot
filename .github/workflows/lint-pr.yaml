@@ -1,0 +1,18 @@
+name: Lint PR
+
+on:
+  pull_request_target:
+
+jobs:
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+
+      - name: Check lint
+        uses: jpetrucciani/ruff-check@main
+        with:
+          path: '.'

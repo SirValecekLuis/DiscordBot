@@ -1,0 +1,14 @@
+.idea
+.github
+.gitignore
+README.md
+requirements_dev.txt
+ruff.toml
+*env*
+__pycache__/
+**/__pycache__/
+**/.env
+venv/
+
+.ruff_cache/
+.mypy_cache/
