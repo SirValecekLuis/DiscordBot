@@ -13,6 +13,7 @@ exclude = [
     ".mypy_cache",
     ".ruff_cache",
     ".gitignore",
+    ".dockerignore"
 ]
 
 # PEP-8 says 80 chars but it's too low imo
