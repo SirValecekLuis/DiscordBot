@@ -18,6 +18,8 @@ db = Database(settings.database_login)
 cog_list = [
     "login_info",
     "counter",
+    "poop",
+    "wakeup",
     "auto_voice",
     "welcome_message",
     "leaderboard",
