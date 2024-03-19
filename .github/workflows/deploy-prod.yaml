@@ -61,17 +61,6 @@ jobs:
       - build-push-image
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
       - name: Deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USERNAME }}
-          key: ${{ secrets.VPS_KEY }}
-          port: ${{ secrets.VPS_PORT }}
-          script: |
-            cd ~/apps/discord-bot
-            docker compose pull
-            docker compose up -d
+        run: |
+          curl -H "Authorization: Bearer ${{ secrets.BEARER }}" ${{ secrets.DEPLOY_API }}
