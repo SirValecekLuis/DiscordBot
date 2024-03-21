@@ -16,11 +16,12 @@ db = Database(settings.database_login)
 
 # list of all cog modules
 cog_list = [
-    "login_info",
-    "counter",
+    "auto_pin",
     "auto_voice",
-    "welcome_message",
+    "counter",
     "leaderboard",
+    "login_info",
+    "welcome_message",
 ]
 
 # load every cog in cog_list
