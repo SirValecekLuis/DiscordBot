@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
@@ -62,5 +63,8 @@ jobs:
 
     steps:
       - name: Deploy
+        env:
+          BEARER: ${{ secrets.BEARER }}
+          DEPLOY_API: ${{ secrets.DEPLOY_API }}
         run: |
-          curl -H "Authorization: Bearer ${{ secrets.BEARER }}" ${{ secrets.DEPLOY_API }}
+          curl -H "Authorization: Bearer $BEARER" $DEPLOY_API
