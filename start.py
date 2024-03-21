@@ -21,6 +21,7 @@ cog_list = [
     "auto_voice",
     "welcome_message",
     "leaderboard",
+    "auto_pin",
 ]
 
 # load every cog in cog_list
