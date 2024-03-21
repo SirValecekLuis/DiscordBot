@@ -10,7 +10,7 @@ class AutoPin(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
         self.pin_emoji = '📌'
-        self.threshold = 2
+        self.threshold = 5
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction,
