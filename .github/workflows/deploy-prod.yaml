@@ -67,4 +67,4 @@ jobs:
           BEARER: ${{ secrets.BEARER }}
           DEPLOY_API: ${{ secrets.DEPLOY_API }}
         run: |
-          curl -H "Authorization: Bearer $BEARER" $DEPLOY_API
+          curl --http1.1 -H "Authorization: Bearer $BEARER" $DEPLOY_API
