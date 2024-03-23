@@ -10,7 +10,8 @@ class AutoPin(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
         self.pin_emoji = '📌'
-        self.threshold = 5
+        self.pin_threshold = 5
+        self.unpin_threshold = 2
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction,
@@ -29,7 +30,7 @@ class AutoPin(commands.Cog):
                          if x.emoji == self.pin_emoji]:
             yes_count += reaction.count
 
-        if yes_count >= self.threshold:
+        if yes_count >= self.pin_threshold:
             await message.pin()
 
     @commands.Cog.listener()
@@ -49,7 +50,7 @@ class AutoPin(commands.Cog):
                          if x.emoji == self.pin_emoji]:
             yes_count += reaction.count
 
-        if yes_count < self.threshold:
+        if yes_count <= self.unpin_threshold:
             await message.unpin()
 
 
