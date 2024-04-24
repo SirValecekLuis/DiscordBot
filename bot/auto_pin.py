@@ -31,7 +31,12 @@ class AutoPin(commands.Cog):
             yes_count += reaction.count
 
         if yes_count >= self.pin_threshold:
-            await message.pin()
+            try:
+                await message.pin()
+            except discord.HTTPException:
+                print('Pin limit for a channel has been reached')
+            finally:
+                pass
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction,
@@ -51,7 +56,10 @@ class AutoPin(commands.Cog):
             yes_count += reaction.count
 
         if yes_count <= self.unpin_threshold:
-            await message.unpin()
+            try:
+                await message.unpin()
+            finally:
+                pass
 
 
 def setup(bot: discord.Bot) -> None:
