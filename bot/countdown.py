@@ -40,7 +40,7 @@ class CountDown(commands.Cog):
 
             self.message_to_delete = await channel.send(f"*Čas do zkoušky zbývá: {time_diff} hodin.* {emoji}")
             await ctx.respond("Odpočet byl započat.", ephemeral=True)
-            await asyncio.sleep(20)
+            await asyncio.sleep(3600)
 
 
 def setup(bot: discord.Bot) -> None:
