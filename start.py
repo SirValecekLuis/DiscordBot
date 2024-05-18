@@ -22,6 +22,7 @@ cog_list = [
     "leaderboard",
     "login_info",
     "welcome_message",
+    "countdown",
 ]
 
 # load every cog in cog_list
