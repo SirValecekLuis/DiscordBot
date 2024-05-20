@@ -14,7 +14,7 @@ class CountDown(commands.Cog):
     async def on_ready(self) -> None:
         pass
 
-    @tasks.loop(hours=1, minutes=1, seconds=1)
+    @tasks.loop(hours=12, minutes=1, seconds=1)
     async def start_countdown_called(self):
         if self.message_to_delete is not None:
             await self.message_to_delete.delete()
