@@ -32,7 +32,7 @@ class CountDown(commands.Cog):
         prague_tz = cest if not is_dst(time_now_utc.astimezone(cest)) else cet
 
         time_now = time_now_utc.astimezone(prague_tz)
-        time_exam = datetime(2024, 5, 30, 8, 0, tzinfo=prague_tz)
+        time_exam = datetime(2024, 6, 12, 8, 0, tzinfo=prague_tz)
         time_diff = time_exam - time_now
 
         if time_diff.total_seconds() < 0:
