@@ -23,6 +23,7 @@ cog_list = [
     "login_info",
     "welcome_message",
     "countdown",
+    "semester_switching",
 ]
 
 # load every cog in cog_list
