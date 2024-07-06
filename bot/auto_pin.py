@@ -33,7 +33,13 @@ class AutoPin(commands.Cog):
             yes_count += reaction.count
 
         # if error occurs, it should be handled by cog_command_error
-        await message.pin()
+        if yes_count >= self.pin_threshold:
+            try:
+                await message.pin()
+            except discord.HTTPException:
+                raise Exception(f"Pin limit for a channel {message.channel} has been reached."
+                                f"User trying to pin: {user.jump_url}"
+                                f"Message: {message.jump_url}")
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction,
