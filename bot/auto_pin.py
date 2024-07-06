@@ -5,6 +5,8 @@ from discord.ext import commands
 
 from typing import Union
 
+from error_handling import send_error_message_to_user
+
 
 class AutoPin(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
@@ -30,13 +32,8 @@ class AutoPin(commands.Cog):
                          if x.emoji == self.pin_emoji]:
             yes_count += reaction.count
 
-        if yes_count >= self.pin_threshold:
-            try:
-                await message.pin()
-            except discord.HTTPException:
-                print('Pin limit for a channel has been reached')
-            finally:
-                pass
+        # if error occurs, it should be handled by cog_command_error
+        await message.pin()
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction,
@@ -56,10 +53,11 @@ class AutoPin(commands.Cog):
             yes_count += reaction.count
 
         if yes_count <= self.unpin_threshold:
-            try:
-                await message.unpin()
-            finally:
-                pass
+            await message.unpin()
+
+
+    async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        await send_error_message_to_user(ctx, error)
 
 
 def setup(bot: discord.Bot) -> None:
