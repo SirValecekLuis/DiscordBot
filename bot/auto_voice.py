@@ -97,12 +97,6 @@ class AutoVoice(commands.Cog):
 
         await ctx.respond("Invalid storage!")
 
-    # handle command errors
-    @set_auto_voice.error
-    async def admin_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
-        if isinstance(error, commands.MissingPermissions):
-            await ctx.respond("You do not have the required permissions to run this command.")
-
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)
 
