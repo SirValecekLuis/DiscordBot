@@ -2,7 +2,6 @@
 import pymongo.collection
 from pymongo import MongoClient
 from typing import Optional
-
 DB_NAME = "DiscordBot"
 
 
@@ -49,6 +48,15 @@ class Database:
         """
 
         return self.__counter.find_one({"id": user_id})
+
+    async def insert_or_update_into_variables(self, name: str, value: object) -> None:
+        """
+        Function will insert variable with name and value in variables collection in MongoDB.
+        :param name: string for variable name
+        :param value: value which can be of many types.
+        :return: None
+        """
+        self.__variables.update_one({}, {"$set": {name: value}})
 
 
 class InvalidVariablesCount(Exception):
