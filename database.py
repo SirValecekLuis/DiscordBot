@@ -58,6 +58,16 @@ class Database:
         """
         self.__variables.update_one({}, {"$set": {name: value}})
 
+    async def get_variable_from_variables(self, name: str) -> Optional[object]:
+        """
+        Function will try to obtain value from database of given name. None when doesn't exist.
+        :param name: Name of variable in DB
+        :return: Variable value or None
+        """
+        try:
+            return self.__variables.find_one()[name]
+        except KeyError:
+            return None
 
 class InvalidVariablesCount(Exception):
     def __init__(self, err_message):
