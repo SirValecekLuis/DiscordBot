@@ -13,7 +13,7 @@ class SemesterSwitching(commands.Cog):
         self.bot = bot
 
     async def switch_to_archived(self, category: discord.CategoryChannel, category_name: list,
-                                 visited_categories: list):
+                                 visited_categories: list) -> None:
         """
         Adds - archive to a category name
         Removes role (prvák, druhák...)
@@ -46,7 +46,8 @@ class SemesterSwitching(commands.Cog):
         for channel in category.channels:
             await channel.edit(sync_permissions=True)
 
-    async def switch_to_active(self, category: discord.CategoryChannel, category_name: list, visited_categories: list):
+    async def switch_to_active(self, category: discord.CategoryChannel, category_name: list,
+                               visited_categories: list) -> None:
         """
         Removes - archive from name
         Adds role (prvák, druhák...) and enables View Channel for the role
@@ -111,10 +112,10 @@ class SemesterSwitching(commands.Cog):
                 text = "NO CHANNELS"
             raise Exception("semester_switching failed. 15m API response was not enough. In this case, unfortunately,"
                             "we have no idea what was executed and what was not. Therefore there is a list of"
-                            "categories that have been/could have been changed with error attached." + text + e)
+                            "categories that have been/could have been changed with error attached." + text + str(e))
         except Exception as e:
             text = " | ".join([category.name for category in visited_categories])
-            raise Exception("Something failed. processed categories attached + error" + text + e)
+            raise Exception("Something failed. processed categories attached + error" + text + str(e))
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)
