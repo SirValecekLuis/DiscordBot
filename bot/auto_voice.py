@@ -76,26 +76,25 @@ class AutoVoice(commands.Cog):
     # set the automatic voice master ID to the one specified by the user
     @commands.slash_command(name="set-auto-voice-channel")
     @commands.has_permissions(administrator=True)
-    async def set_auto_voice(self, ctx: discord.ApplicationContext, auto_channel_id: str, storage: str) -> None:
-        try:
-            auto_channel_id = int(auto_channel_id)
-        except ValueError:
-            await ctx.respond("Invalid value for auto_channel_id")
-            return
+    async def set_auto_voice(self,
+                             ctx: discord.ApplicationContext,
+                             auto_channel_id: int,
+                             storage: discord.Option(
+                                 str,
+                                 description="Lokálně do proměnné či DB (Databáze preferováno)",
+                                 choices=["local", "db"]
+                             )) -> None:
 
         # check if the id should be stored locally
         if storage == "local":
             self.channel_id = auto_channel_id
-            await ctx.respond("Automatic voice channel set locally!")
+            await ctx.respond("Hodnota nastavena do lokální proměnné platné v rámci runtime.", ephemeral=True)
             return
-
-        if storage == "db":
+        elif storage == "db":
             db.voice_channel_id = auto_channel_id
             self.channel_id = auto_channel_id
-            await ctx.respond("Automatic voice channel set in the database!")
+            await ctx.respond("Hodnota nastavena do databáze.", ephemeral=True)
             return
-
-        await ctx.respond("Invalid storage!")
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)
