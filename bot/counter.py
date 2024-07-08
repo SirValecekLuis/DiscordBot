@@ -74,7 +74,7 @@ async def add_emote(message: discord.Message, emote_name: str) -> None:
         emoji = discord.utils.get(guild.emojis, name=emote_name)
         await message.add_reaction(emoji)
     except discord.errors.InvalidArgument as e:
-        print(f"You can ignore this warning, it comes from typing Tobiáš or Poli with missing emote.\n{e}")
+        print(f"Neexistuje emote s daným jménem.\n{e}")
 
 
 class Counter(commands.Cog):

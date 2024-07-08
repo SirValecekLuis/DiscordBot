@@ -37,9 +37,9 @@ class AutoPin(commands.Cog):
             try:
                 await message.pin()
             except discord.HTTPException:
-                raise Exception(f"Pin limit for a channel {message.channel} has been reached."
-                                f"User trying to pin: {user.jump_url}"
-                                f"Message: {message.jump_url}")
+                raise Exception(f"Pin limit pro channel {message.channel} byl dosažen."
+                                f"Uživatel, který chtěl pinnout: {user.jump_url}"
+                                f"Zpráva k pinnutí: {message.jump_url}")
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction: discord.Reaction,

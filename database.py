@@ -53,7 +53,7 @@ class Database:
         """
         Function will insert variable with name and value in variables collection in MongoDB.
         :param name: string for variable name
-        :param value: value which can be of many types.
+        :param value: value which can be of many types. The type control should not be done in this function.
         :return: None
         """
         self.__variables.update_one({}, {"$set": {name: value}})

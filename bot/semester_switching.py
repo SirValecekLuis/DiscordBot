@@ -83,8 +83,9 @@ class SemesterSwitching(commands.Cog):
     async def switch_semester(self, ctx: discord.ApplicationContext) -> None:
         """
         PREREQUISITES
-        channel name is in this way: "x. semestr" or "x. semestr - archiv" and only 0-9 is supported right now.
-        discord roles will follow the same pattern as "EMOJI NUMBER NAME" such as "1️⃣ Prvák" and will not be changed.
+        Channel name is in this way: "x. semestr" or "x. semestr - archiv" and only 0-9 is supported right now.
+        Discord role ID will be inserted in DB with name x_year_role_id with value of ID (int) of given role.
+        (Can be obtained via discord when activating developer mode and then right-clicking on role)
         """
         # TODO: add some level of stupid proofing (maybe some kind of acceptance from others or something like that)
 
@@ -110,12 +111,12 @@ class SemesterSwitching(commands.Cog):
             text = " | ".join([category.name for category in visited_categories])
             if len(visited_categories) == 0:
                 text = "NO CHANNELS"
-            raise Exception("semester_switching failed. 15m API response was not enough. In this case, unfortunately,"
-                            "we have no idea what was executed and what was not. Therefore there is a list of"
-                            "categories that have been/could have been changed with error attached." + text + str(e))
+            raise Exception("API neodpovědělo do 15 minut. Channely, které mohly být ovlivněny, jsou vypsány společně s"
+                            "chybovou hláškou, která stála za pád tohoto commandu." + text + str(e))
         except Exception as e:
             text = " | ".join([category.name for category in visited_categories])
-            raise Exception("Something failed. processed categories attached + error" + text + str(e))
+            raise Exception(
+                "Něco selhalo. Teoreticky ovlivněné kategorie + chybová hláška bude vypsána." + text + str(e))
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)

@@ -36,6 +36,7 @@ class CounterLeaderboard(commands.Cog):
                                       ) -> None:
         """Sends a list of people with the highest sum of counters to the user
 
+        :param ctx: Context of slash command
         :param limit_str: optional limit on how many people will be displayed
         :return: None
         """
@@ -56,10 +57,9 @@ class CounterLeaderboard(commands.Cog):
                     limit = tmp_limit
             except ValueError:
                 # notify user of failure to parse their limit to int
-                await ctx.respond("Couldn't parse limit into `int`. " +
-                                  "Likely a wrong input format " +
-                                  "(expected a number)",
-                                  ephemeral=True)
+                await ctx.respond(
+                    "Zadaný limit nemohl být převeden na číslo. Pravděpodobně špatný formát, je očekáváno celé číslo.",
+                    ephemeral=True)
                 return
 
         # create a response string
@@ -67,17 +67,15 @@ class CounterLeaderboard(commands.Cog):
 
         # build the response by adding leaderboard entries to it
         try:
-            for index, (key, value) in zip(range(1, limit+1),
+            for index, (key, value) in zip(range(1, limit + 1),
                                            leaderboard.items()):
                 response += f'{index}. <@{key}>: {value}\n'
 
             # send the response to the user
             await ctx.respond(response, ephemeral=True)
         except AttributeError:
-            # notify user of a error in displaying the leaderboard
-            await ctx.respond("The leaderboard couldn't be displayed " +
-                              "(most likely couldn't be quarried " +
-                              "from database)",
+            # notify user of an error in displaying the leaderboard
+            await ctx.respond("Leadboard nemohl být načten, pravděpodobně kvůli chybě ze strany databáze.",
                               ephemeral=True)
             return
 
