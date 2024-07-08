@@ -24,6 +24,7 @@ cog_list = [
     "welcome_message",
     "countdown",
     "semester_switching",
+    "database_communication",
 ]
 
 # load every cog in cog_list

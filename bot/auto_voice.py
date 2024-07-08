@@ -74,7 +74,7 @@ class AutoVoice(commands.Cog):
             await before.channel.delete()
 
     # set the automatic voice master ID to the one specified by the user
-    @commands.slash_command(name="setautovoicechannel")
+    @commands.slash_command(name="set-auto-voice-channel")
     @commands.has_permissions(administrator=True)
     async def set_auto_voice(self, ctx: discord.ApplicationContext, auto_channel_id: str, storage: str) -> None:
         try:
