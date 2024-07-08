@@ -4,8 +4,7 @@ from discord.ext import commands
 import math
 
 from error_handling import send_error_message_to_user
-
-ROLES = {1: "1️⃣ Prvák", 2: "2️⃣ Druhák", 3: "3️⃣ Třeťák", 4: "4️⃣ Čtvrťák", 5: "5️⃣ Páťák"}
+from start import db
 
 
 class SemesterSwitching(commands.Cog):
@@ -20,13 +19,23 @@ class SemesterSwitching(commands.Cog):
         Disallows public/private threads, send messages in them and sending messages overall for everyone
         Resets View Channel for everyone to its default state
         """
+
+        # role_id of the given semester category
+        year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
+        role_to_search = f"{year}_year_role_id"
+        role_id = await db.get_variable_from_variables(role_to_search)
+        if role_id is None:
+            raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
+        role_from_db = category.guild.get_role(role_id)
+
         new_overwrites = category.overwrites
-        for role_name, overwrite in category.overwrites.items():
-            year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
-            if role_name.name == ROLES[year]:
-                role_to_remove = discord.utils.get(category.guild.roles, name=ROLES[year])
+        for role, overwrite in category.overwrites.items():
+            if role.name == role_from_db.name:
+                role_to_remove = discord.utils.get(category.guild.roles, id=role_id)
                 new_overwrites = {role: overwrite for role, overwrite in category.overwrites.items() if
                                   role != role_to_remove}
+                break
+
         new_overwrites[category.guild.default_role] = discord.PermissionOverwrite(
             create_public_threads=False,
             create_private_threads=False,
@@ -54,9 +63,16 @@ class SemesterSwitching(commands.Cog):
         Disallows view channel for everyone
         Allows Send Messages, Send Messages in Threads and Create Private/Public threads for everyone
         """
+
+        # role_id of the given semester category
+        year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
+        role_to_search = f"{year}_year_role_id"
+        role_id = await db.get_variable_from_variables(role_to_search)
+        if role_id is None:
+            raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
+
         new_overwrites = category.overwrites
-        year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
-        role_to_add = discord.utils.get(category.guild.roles, name=ROLES[year])
+        role_to_add = discord.utils.get(category.guild.roles, id=role_id)
         new_overwrites[role_to_add] = discord.PermissionOverwrite(view_channel=True)
         new_overwrites[category.guild.default_role] = discord.PermissionOverwrite(
             view_channel=False,
@@ -110,13 +126,14 @@ class SemesterSwitching(commands.Cog):
         except discord.HTTPException as e:
             text = " | ".join([category.name for category in visited_categories])
             if len(visited_categories) == 0:
-                text = "NO CHANNELS"
+                text = "NO CATEGORIES"
             raise Exception("API neodpovědělo do 15 minut. Channely, které mohly být ovlivněny, jsou vypsány společně s"
-                            "chybovou hláškou, která stála za pád tohoto commandu." + text + str(e))
+                            "chybovou hláškou, která stála za pád tohoto commandu. " + text + " " + str(e))
         except Exception as e:
             text = " | ".join([category.name for category in visited_categories])
             raise Exception(
-                "Něco selhalo. Teoreticky ovlivněné kategorie + chybová hláška bude vypsána." + text + str(e))
+                "Něco selhalo. Teoreticky ovlivněné kategorie + chybová hláška bude vypsána. KATEGORIE: "
+                + text + "ERROR: " + str(e))
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)
