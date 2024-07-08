@@ -56,7 +56,7 @@ class CountDown(commands.Cog):
             f"***Tvá smrt v podobě zkoušky z APPS přichází za {hours} {hours_str} {minutes} {minutes_str} a {seconds} {seconds_str}.*** {emoji}\n"
             f"*||Zlé hlasy říkají, že úspěšnost je 50%. :skull:||*")
 
-    @commands.slash_command(name='start_countdown')
+    @commands.slash_command(name='start-countdown')
     async def start_countdown(self, ctx: discord.ApplicationContext):
         if self.started:
             await ctx.respond("Odpočet už běží.", ephemeral=True)

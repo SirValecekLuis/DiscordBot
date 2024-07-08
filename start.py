@@ -22,9 +22,10 @@ cog_list = [
     "leaderboard",
     "login_info",
     "welcome_message",
-    "countdown",
+    # "countdown", - This module is for now removed as it is not useful
     "semester_switching",
     "database_communication",
+    "help",
 ]
 
 # load every cog in cog_list
