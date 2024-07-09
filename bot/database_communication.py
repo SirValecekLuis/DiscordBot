@@ -36,12 +36,14 @@ class DatabaseCommunication(commands.Cog):
         except ValueError:
             # If something is wrong with value and value_type
             await ctx.respond(
-                f"Nesprávná hodnota či nelze převést zadanou hodnotu {value} na daný datový typ {value_type}.", ephemeral=True)
+                f"Nesprávná hodnota či nelze převést zadanou hodnotu {value} na daný datový typ {value_type}.",
+                ephemeral=True)
         else:
             # Insert or update in MongoDB
             await db.insert_or_update_into_variables(name, value)
 
-        await ctx.respond("Hodnota vložena/změněna úspěšně.", ephemeral=True)
+        await ctx.respond(f"Hodnota s názvnem {name} typu {value_type} a hodnotou {value} vložena/změněna úspěšně.",
+                          ephemeral=True)
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)

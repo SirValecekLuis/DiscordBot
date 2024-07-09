@@ -93,6 +93,94 @@ class SemesterSwitching(commands.Cog):
         for channel in category.channels:
             await channel.edit(sync_permissions=True)
 
+    async def sort_categories(self, ctx: discord.ApplicationContext) -> None:
+        """
+        This function will sort categories so the active one will be above voice channels and archived will be under.
+
+        :param ctx:
+        :return: None
+        """
+
+        try:
+            categories = ctx.guild.categories
+
+            # list of categories (divided on active and archived)
+            archived_categories = [category for category in categories if
+                                   len(category.name.split()) == 4 and category.name.split()[3] == "archiv"]
+            active_categories = [category for category in categories if
+                                 len(category.name.split()) == 2 and category.name.split()[1] == "semestr"]
+
+            # If semester categories were empty
+            if len(archived_categories) == 0 and len(active_categories) == 0:
+                await ctx.followup.send(
+                    "Příkaz byl proveden, ale nebyly nalezeny žádné kategorie, které by byly změněny.")
+                return
+
+            # sorted by ascending order by first number (x. semestr)
+            archived_categories.sort(key=lambda category: int(category.name[0]), reverse=True)
+            active_categories.sort(key=lambda category: int(category.name[0]), reverse=True)
+
+            # get id to get channel
+            voice_category_id = await db.get_variable_from_variables("voice_category_id")
+            if voice_category_id is None:
+                raise Exception("voice_category_id nebylo nastaveno do databáze.")
+
+            # get channel
+            voice_category = ctx.guild.get_channel(voice_category_id)
+            if voice_category is None:
+                raise Exception("voice category nebyla nalezena se zadaným ID.")
+
+            # Discord indexes from 0
+            voice_category_pos = voice_category.position
+
+            # Only god and I knew how this works, now only god knows
+            # I take all categories before voice category and remove semester categories
+            first_half = categories[:voice_category_pos]
+            first_half = [item for item in first_half if
+                          item not in archived_categories and item not in active_categories]
+            # The second half is after voice category, the same logic
+            second_half = categories[voice_category_pos:]
+            second_half = [item for item in second_half if
+                           item not in archived_categories and item not in active_categories]
+            # Removed voice category from second half as it is included and I want to add it manually later myself
+            second_half.remove(voice_category)
+
+            # In this part I will put the categories in order I would like to have them
+            # First, I take channels that are before semester categories
+            sorted_categories = []
+            index = 0
+            for category in first_half:
+                sorted_categories.append((category, index))
+                index += 1
+
+            # Then, I will insert semester categories
+            for category in active_categories:
+                sorted_categories.append((category, index))
+                index += 1
+
+            # Now the voice category itself
+            sorted_categories.append((voice_category, index))
+            index += 1
+
+            # Now archived semester categories after voice category
+            for category in archived_categories:
+                sorted_categories.append((category, index))
+                index += 1
+
+            # And the rest of categories at the end
+            for category in second_half:
+                sorted_categories.append((category, index))
+                index += 1
+
+            # Final API position change of all categories
+            for category, index in sorted_categories:
+                await category.edit(position=index)
+
+        except Exception as e:
+            raise Exception("Něco nastalo špatně během seřazování kategorii. " + str(e))
+        except discord.HTTPException as e:
+            raise Exception("Http error z discord API, error: " + str(e))
+
     @commands.slash_command(name='switch-semester',
                             description='Tento příkaz přehází semestry do správných kategorii pro nový semestr.')
     @commands.has_permissions(administrator=True)
@@ -122,6 +210,9 @@ class SemesterSwitching(commands.Cog):
                 elif len(category_name[0]) == 2 and category_name[1] == "semestr" and category_name[3] == "archiv":
                     await self.switch_to_active(category, category_name, visited_categories)
 
+            # Sort categories, called after all categories are sorted and their perms are changed
+            await self.sort_categories(ctx)
+
             await ctx.followup.send("Prohození semestrů bylo dokončeno!", ephemeral=True)
         except discord.HTTPException as e:
             text = " | ".join([category.name for category in visited_categories])
@@ -133,7 +224,7 @@ class SemesterSwitching(commands.Cog):
             text = " | ".join([category.name for category in visited_categories])
             raise Exception(
                 "Něco selhalo. Teoreticky ovlivněné kategorie + chybová hláška bude vypsána. KATEGORIE: "
-                + text + "ERROR: " + str(e))
+                + text + " ERROR: " + str(e))
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         await send_error_message_to_user(ctx, error)

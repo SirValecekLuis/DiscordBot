@@ -25,7 +25,9 @@ async def send_error_message_to_user(ctx: discord.ApplicationContext, error: dis
                           "moderátorů.", ephemeral=True)
         guild = ctx.guild
         channel = discord.utils.get(guild.channels, name=CHANNEL_NAME)
+        if channel is None:
+            raise Exception()
         await channel.send(error_message)
-    except AttributeError:
+    except Exception:
         print(f"Channel {CHANNEL_NAME} neexistuje, printuji do konzole\n")
         print(error_message)
