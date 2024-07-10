@@ -2,8 +2,8 @@
 import discord
 from discord.ext import commands
 
-from start import db
 from error_handling import send_error_message_to_user
+from start import db
 
 
 async def create_new_channel(user: discord.Member, category: discord.CategoryChannel) -> int:
@@ -13,7 +13,6 @@ async def create_new_channel(user: discord.Member, category: discord.CategoryCha
     :param category: Voice channel category
     :return: ID of created channel as int
     """
-
     discord_server = user.guild
 
     # create the voice channel name from username or nickname
@@ -42,8 +41,7 @@ class AutoVoice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
-        """
-        When the bot starts, it clears empty voice channels generated before this session started.
+        """When the bot starts, it clears empty voice channels generated before this session started.
         :return:
         """
         # try to get the channel category of the automatic voice channel
@@ -68,8 +66,7 @@ class AutoVoice(commands.Cog):
                                     member: discord.Member,
                                     before: discord.VoiceState,
                                     after: discord.VoiceState) -> None:
-        """
-        This function checks if a channel can be deleted after someone leaves.
+        """This function checks if a channel can be deleted after someone leaves.
         :param member: Member, who left
         :param before:
         :param after:
@@ -118,16 +115,14 @@ class AutoVoice(commands.Cog):
                              storage: discord.Option(
                                  str,
                                  description="Lokálně do proměnné či DB (Databáze preferováno)",
-                                 choices=["local", "db"]
+                                 choices=["local", "db"],
                              )) -> None:
-        """
-        Set the automatic voice primary ID to the one specified by the user.
+        """Set the automatic voice primary ID to the one specified by the user.
         :param ctx: Context of slash command
         :param auto_channel_id: ID that should be set as int
         :param storage: Local variable or database
         :return: None
         """
-
         # check if the id should be stored locally
         if storage == "local":
             self.channel_id = auto_channel_id

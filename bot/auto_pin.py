@@ -18,8 +18,7 @@ class AutoPin(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction,
-                              user: Union[discord.Member,
-                              discord.User]) -> None:
+                              user: Union[discord.Member, discord.User]) -> None:
         """Pins a message if a certain threshold of reactions
            has been reached"""
         message = reaction.message
@@ -33,7 +32,7 @@ class AutoPin(commands.Cog):
                                  if x.emoji == self.pin_emoji]:
             yes_count += message_reaction.count
 
-        # if error occurs, it should be handled by cog_command_error
+        # if an error occurs, it should be handled by cog_command_error
         if yes_count >= self.pin_threshold:
             try:
                 await message.pin()
