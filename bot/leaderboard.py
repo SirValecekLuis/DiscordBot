@@ -1,4 +1,4 @@
-"""Cog that enables the user to see the counter leaderboard."""
+"""Cog that enables the user to see the counter-leaderboard."""
 import discord
 from discord.ext import commands
 from discord.commands import Option
@@ -7,11 +7,12 @@ from start import db
 
 
 async def get_leaderboard(entries: list) -> dict:
-    """Queries the database for counter statistics, sums them
-    and returns a sorted dictionary<user_id, counter_sum>
+    """
+    Queries the database for counter-statistics, sums them
+    and returns a sorted dictionary<user_id, counter_sum>.
 
-    :param entries: list containing entries from the database
-    :return: dict containing the sum and user id
+    :param entries: List containing entries from the database
+    :return: Dict containing the sum and user id
     """
     # sums the counters and stores the value into leaderboard dict
     leaderboard = {}
@@ -20,12 +21,12 @@ async def get_leaderboard(entries: list) -> dict:
             value for key, value in entry.items() if key != 'id')
 
     # sorts the leaderboard dict
-    return {key: value for key, value in
-            sorted(leaderboard.items(),
-                   key=lambda pair: pair[1], reverse=True)}
+    return dict(sorted(leaderboard.items(), key=lambda pair: pair[1], reverse=True))
 
 
 class CounterLeaderboard(commands.Cog):
+    """This cog handles the leaderboard of discord members."""
+
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
 
@@ -40,7 +41,7 @@ class CounterLeaderboard(commands.Cog):
         :param limit_str: optional limit on how many people will be displayed
         :return: None
         """
-        # retrieves counter stats from the database, sums them and sorts them
+        # retrieves counter-stats from the database, sums them and sorts them
         leaderboard = await get_leaderboard(list(db.counter.find(
             {}, {"_id": 0, "id": 1, "counter_tobias": 1, "counter_poli": 1})))
 
@@ -81,4 +82,5 @@ class CounterLeaderboard(commands.Cog):
 
 
 def setup(bot: discord.Bot) -> None:
+    """This is just a setup for start.py"""
     bot.add_cog(CounterLeaderboard(bot))

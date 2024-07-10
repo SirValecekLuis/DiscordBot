@@ -7,6 +7,7 @@ from start import db
 
 
 class DatabaseCommunication(commands.Cog):
+    """This cog is for database communication and allows bot-developers to insert variable in DB via slash command."""
     def __init__(self, bot: discord.bot) -> None:
         self.bot = bot
 
@@ -22,6 +23,15 @@ class DatabaseCommunication(commands.Cog):
                                          description="Jakého typu je proměnná?",
                                          choices=["int", "float", "str"]
                                      )) -> None:
+        """
+        This command updates or insert a variable to Database.
+        Throws error if value conversion was not successful.
+        :param ctx: Slash command context
+        :param name: Name of variable
+        :param value: Value of variable
+        :param value_type: Type of Variable as discord Option that ensures some of the given choices
+        :return: None
+        """
 
         try:
             # Type checking
@@ -50,4 +60,5 @@ class DatabaseCommunication(commands.Cog):
 
 
 def setup(bot: discord.Bot) -> None:
+    """This is just a setup for start.py"""
     bot.add_cog(DatabaseCommunication(bot))

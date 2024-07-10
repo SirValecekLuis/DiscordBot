@@ -1,4 +1,4 @@
-"""Cog that is supposed to add a record to user to database if specific word is triggered."""
+"""Cog that is supposed to add a record to user to a database if a specific word is triggered."""
 import discord
 from discord.ext import commands
 from discord.commands import Option
@@ -25,13 +25,13 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
     If the user doesn't have any record in the database, a new one is created.
 
     :param user_id: ID of author from discord message
-    :param count: amount of counted words which should be added
-    :param counter: string based on which counter is supposed to be added (via counters list above)
+    :param count: number of counted words which should be added
+    :param counter: string based on which counter is supposed to be added (via counter-list above)
     :return: None
     """
-    user = await db.find_user_from_database(user_id)  # Trying to find user based on user id, returns record or None
+    user = await db.find_user_from_database(user_id)  # Trying to find a user based on user id, returns record or None
     if user:
-        count_from_user = user.get(counter)  # Obtaining actual counter
+        count_from_user = user.get(counter)  # Getting actual counter
         if count_from_user:
             db.counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})
         else:
@@ -48,11 +48,11 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
 
 
 async def count_words(message: str, words: list) -> int:
-    """Count the amount of words in message.
-
-    :param message: text from discord message
-    :param words: list of words which are to be found and counted from message
-    :return: amount of found words
+    """
+    Count the number of words in a message.
+    :param message: Text from a discord message
+    :param words: List of words which are to be found and counted from message
+    :return: Number of found words
     """
     count = 0
     message = message.split()  # It needs to be split due to finding specific words
@@ -67,7 +67,7 @@ async def add_emote(message: discord.Message, emote_name: str) -> None:
     """Add a reaction to the message.
 
     :param message: Discord message
-    :param emote_name: name of the emote to add
+    :param emote_name: name of the emoting to add
     """
     try:
         guild = message.guild
@@ -91,24 +91,24 @@ class Counter(commands.Cog):
         If the member option is provided, the requested member is queried from the database. If not provided, the
         member calling the command is queried.
 
-        :param ctx: context of slash command
-        :param member: tagged member to show his statistics
+        :param ctx: Context of slash command
+        :param member: Tagged member to show his statistics
         :return: None
         """
         user_id = ctx.user.id  # ID of author
-        if member:  # If optional parameter is filled then I switch ID to tagged member
+        if member:  # If optional parameter is filled, then I switch ID to tagged member
             user_id = member.id
 
         user_from_database = await db.find_user_from_database(user_id)  # User from database
 
-        if user_from_database is None:  # If user has no record in database
+        if user_from_database is None:  # If a user has no record in database
             if member:
                 await ctx.respond(f"Uživatel {member.mention} nemá žádný záznam.", ephemeral=True)
             else:
                 await ctx.respond("Nemáš žádný záznam", ephemeral=True)
             return
 
-        # Creating message for bot to send and asking for data from database
+        # Creating a message for bot to send and asking for data from a database
         text = "Tvoje počítadla\n"
         for counter, counter_text in COUNTERS.items():
             count_from_user = user_from_database.get(counter)
@@ -121,6 +121,11 @@ class Counter(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
+        """
+        Listener that checks if any word searched for is in a message or not
+        :param message: Message that triggered listener
+        :return: None
+        """
         if message.author == self.bot.user:
             return
 
@@ -141,4 +146,5 @@ class Counter(commands.Cog):
 
 
 def setup(bot: discord.Bot) -> None:
+    """This is just a setup for start.py"""
     bot.add_cog(Counter(bot))

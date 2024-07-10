@@ -26,8 +26,9 @@ async def send_error_message_to_user(ctx: discord.ApplicationContext, error: dis
         guild = ctx.guild
         channel = discord.utils.get(guild.channels, name=CHANNEL_NAME)
         if channel is None:
-            raise Exception()
+            raise Exception("Channel bot-development neexistuje.")
         await channel.send(error_message)
-    except Exception:
+    except Exception as e:
         print(f"Channel {CHANNEL_NAME} neexistuje, printuji do konzole\n")
         print(error_message)
+        print(e)
