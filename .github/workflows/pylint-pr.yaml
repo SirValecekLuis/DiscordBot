@@ -2,7 +2,8 @@ name: Pylint PR
 on:
   pull_request:
 jobs:
-  build:
+  pylint:
+    name: Pylint Check
     runs-on: ubuntu-latest
     strategy:
       matrix:
