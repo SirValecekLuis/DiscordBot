@@ -1,8 +1,6 @@
 name: Pylint PR
-
 on:
-  pull_request_target:
-
+  pull_request:
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,6 +9,8 @@ jobs:
         python-version: ["3.11"]
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3
       with:
@@ -19,6 +19,27 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pylint
+    - name: Checkout PR Branch
+      run: |
+        git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-${{ github.event.pull_request.number }}
+        git checkout pr-${{ github.event.pull_request.number }}
+    - name: Get changed files
+      id: changed-files
+      run: |
+        echo "files=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.py$' | xargs)" >> $GITHUB_OUTPUT
     - name: Analysing the code with pylint
       run: |
-        pylint $(git ls-files '*.py')
+        if [ -f .pylintrc ]; then
+          if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
+            pylint --rcfile=.pylintrc ${{ steps.changed-files.outputs.files }}
+          else
+            echo "No Python files changed in this PR."
+          fi
+        else
+          echo ".pylintrc file not found, using default Pylint settings"
+          if [ -n "${{ steps.changed-files.outputs.files }}" ]; then
+            pylint ${{ steps.changed-files.outputs.files }}
+          else
+            echo "No Python files changed in this PR."
+          fi
+        fi
