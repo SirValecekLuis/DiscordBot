@@ -1,10 +1,11 @@
 """Cog that is supposed to add a record to user to a database if a specific word is triggered."""
-import discord
-from discord.ext import commands
-from discord.commands import Option
 
-from start import db
+import discord
+from discord.commands import Option
+from discord.ext import commands
+
 from error_handling import send_error_message_to_user
+from start import db
 
 """
 There is no issue to add a new counter, the function add_to_counter is made to add a counter to user if the user has
@@ -12,9 +13,10 @@ already a record in the database but without the specified counter. Then just si
 are needed for add_to_counter func.
 COUNTERS = {"name_in_database": "name_to_show_for_user"}
 """
-COUNTERS = {"counter_tobias": "Tobiáš",
-            "counter_poli": "Poli/Olivka",
-            }
+COUNTERS = {
+    "counter_tobias": "Tobiáš",
+    "counter_poli": "Poli/Olivka",
+}
 
 POLI_WORDS = ["poli", "polim", "poliho", "polimu"]
 
@@ -48,8 +50,7 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
 
 
 async def count_words(message: str, words: list) -> int:
-    """
-    Count the number of words in a message.
+    """Count the number of words in a message.
     :param message: Text from a discord message
     :param words: List of words which are to be found and counted from message
     :return: Number of found words
@@ -84,8 +85,11 @@ class Counter(commands.Cog):
         self.bot = bot_ref
 
     @commands.slash_command(name="counters", description="Vypíše počítadla, @uživatel pro vypsání jeho statistik")
-    async def counters(self, ctx: discord.ApplicationContext,
-                       member: Option(discord.Member, "Uživatel", required=False, default=None)) -> None:
+    async def counters(
+        self,
+        ctx: discord.ApplicationContext,
+        member: Option(discord.Member, "Uživatel", required=False, default=None),
+    ) -> None:
         """Slash command that writes out counter of a specific user.
 
         If the member option is provided, the requested member is queried from the database. If not provided, the
@@ -121,8 +125,7 @@ class Counter(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message) -> None:
-        """
-        Listener that checks if any word searched for is in a message or not
+        """Listener that checks if any word searched for is in a message or not
         :param message: Message that triggered listener
         :return: None
         """
@@ -141,7 +144,13 @@ class Counter(commands.Cog):
             await add_to_counter(message.author.id, poli_count, "counter_poli")
             await add_emote(message, "olivkacursed")
 
-    async def cog_command_error(self, ctx: discord.ApplicationContext, error: discord.DiscordException) -> None:
+    async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
+        any type of error.
+        :param ctx: Context of slash command
+        :param error: Error that happened in a cog
+        :return: None
+        """
         await send_error_message_to_user(ctx, error)
 
 

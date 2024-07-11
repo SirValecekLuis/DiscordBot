@@ -1,14 +1,15 @@
 """Cog that enables the user to see the counter-leaderboard."""
-import discord
-from discord.ext import commands
-from discord.commands import Option
 
+import discord
+from discord.commands import Option
+from discord.ext import commands
+
+from error_handling import send_error_message_to_user
 from start import db
 
 
 async def get_leaderboard(entries: list) -> dict:
-    """
-    Queries the database for counter-statistics, sums them
+    """Queries the database for counter-statistics, sums them
     and returns a sorted dictionary<user_id, counter_sum>.
 
     :param entries: List containing entries from the database
@@ -17,8 +18,7 @@ async def get_leaderboard(entries: list) -> dict:
     # sums the counters and stores the value into leaderboard dict
     leaderboard = {}
     for entry in entries:
-        leaderboard[entry['id']] = sum(
-            value for key, value in entry.items() if key != 'id')
+        leaderboard[entry["id"]] = sum(value for key, value in entry.items() if key != "id")
 
     # sorts the leaderboard dict
     return dict(sorted(leaderboard.items(), key=lambda pair: pair[1], reverse=True))
@@ -30,11 +30,12 @@ class CounterLeaderboard(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
 
-    @commands.slash_command(name='leaderboard',
-                            description='Vypíše uživateli žebříček počítadla')
-    async def get_counter_leaderboard(self, ctx: discord.ApplicationContext,
-                                      limit_str: Option(str, required=False)
-                                      ) -> None:
+    @commands.slash_command(name="leaderboard", description="Vypíše uživateli žebříček počítadla")
+    async def get_counter_leaderboard(
+        self,
+        ctx: discord.ApplicationContext,
+        limit_str: Option(str, required=False),
+    ) -> None:
         """Sends a list of people with the highest sum of counters to the user
 
         :param ctx: Context of slash command
@@ -42,8 +43,9 @@ class CounterLeaderboard(commands.Cog):
         :return: None
         """
         # retrieves counter-stats from the database, sums them and sorts them
-        leaderboard = await get_leaderboard(list(db.counter.find(
-            {}, {"_id": 0, "id": 1, "counter_tobias": 1, "counter_poli": 1})))
+        leaderboard = await get_leaderboard(
+            list(db.counter.find({}, {"_id": 0, "id": 1, "counter_tobias": 1, "counter_poli": 1})),
+        )
 
         # sets the limit on how many entries will be displayed
         limit: int = 20
@@ -60,25 +62,36 @@ class CounterLeaderboard(commands.Cog):
                 # notify user of failure to parse their limit to int
                 await ctx.respond(
                     "Zadaný limit nemohl být převeden na číslo. Pravděpodobně špatný formát, je očekáváno celé číslo.",
-                    ephemeral=True)
+                    ephemeral=True,
+                )
                 return
 
         # create a response string
-        response: str = 'Současný žebříček součtu počítadel:\n'
+        response: str = "Současný žebříček součtu počítadel:\n"
 
         # build the response by adding leaderboard entries to it
         try:
-            for index, (key, value) in zip(range(1, limit + 1),
-                                           leaderboard.items()):
-                response += f'{index}. <@{key}>: {value}\n'
+            for index, (key, value) in zip(range(1, limit + 1), leaderboard.items()):
+                response += f"{index}. <@{key}>: {value}\n"
 
             # send the response to the user
             await ctx.respond(response, ephemeral=True)
         except AttributeError:
             # notify user of an error in displaying the leaderboard
-            await ctx.respond("Leadboard nemohl být načten, pravděpodobně kvůli chybě ze strany databáze.",
-                              ephemeral=True)
+            await ctx.respond(
+                "Leadboard nemohl být načten, pravděpodobně kvůli chybě ze strany databáze.",
+                ephemeral=True,
+            )
             return
+
+    async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
+        any type of error.
+        :param ctx: Context of slash command
+        :param error: Error that happened in a cog
+        :return: None
+        """
+        await send_error_message_to_user(ctx, error)
 
 
 def setup(bot: discord.Bot) -> None:

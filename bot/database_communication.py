@@ -1,4 +1,5 @@
 """This module is used to change and insert variables in DB via slash commands on discord."""
+
 import discord
 from discord.ext import commands
 
@@ -8,23 +9,24 @@ from start import db
 
 class DatabaseCommunication(commands.Cog):
     """This cog is for database communication and allows bot-developers to insert variable in DB via slash command."""
+
     def __init__(self, bot: discord.bot) -> None:
         self.bot = bot
 
-    @commands.slash_command(name='insert-or-update-value',
-                            description='Tento příkaz vloží či upraví proměnnou v DB.')
+    @commands.slash_command(name="insert-or-update-value", description="Tento příkaz vloží či upraví proměnnou v DB.")
     @commands.has_permissions(administrator=True)
-    async def insert_or_update_value(self,
-                                     ctx: discord.ApplicationContext,
-                                     name: str,
-                                     value: str,
-                                     value_type: discord.Option(
-                                         str,
-                                         description="Jakého typu je proměnná?",
-                                         choices=["int", "float", "str"]
-                                     )) -> None:
-        """
-        This command updates or insert a variable to Database.
+    async def insert_or_update_value(
+        self,
+        ctx: discord.ApplicationContext,
+        name: str,
+        value: str,
+        value_type: discord.Option(
+            str,
+            description="Jakého typu je proměnná?",
+            choices=["int", "float", "str"],
+        ),
+    ) -> None:
+        """This command updates or insert a variable to Database.
         Throws error if value conversion was not successful.
         :param ctx: Slash command context
         :param name: Name of variable
@@ -32,7 +34,6 @@ class DatabaseCommunication(commands.Cog):
         :param value_type: Type of Variable as discord Option that ensures some of the given choices
         :return: None
         """
-
         try:
             # Type checking
             if value_type == "str":
@@ -42,20 +43,29 @@ class DatabaseCommunication(commands.Cog):
             elif value_type == "float":
                 value = float(value)
             else:
-                raise ValueError()
+                raise ValueError
         except ValueError:
             # If something is wrong with value and value_type
             await ctx.respond(
                 f"Nesprávná hodnota či nelze převést zadanou hodnotu {value} na daný datový typ {value_type}.",
-                ephemeral=True)
+                ephemeral=True,
+            )
         else:
             # Insert or update in MongoDB
             await db.insert_or_update_into_variables(name, value)
 
-        await ctx.respond(f"Hodnota s názvnem {name} typu {value_type} a hodnotou {value} vložena/změněna úspěšně.",
-                          ephemeral=True)
+        await ctx.respond(
+            f"Hodnota s názvnem {name} typu {value_type} a hodnotou {value} vložena/změněna úspěšně.",
+            ephemeral=True,
+        )
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
+        any type of error.
+        :param ctx: Context of slash command
+        :param error: Error that happened in a cog
+        :return: None
+        """
         await send_error_message_to_user(ctx, error)
 
 

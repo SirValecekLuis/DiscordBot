@@ -1,4 +1,5 @@
 """Cog that automatically manages voice channels."""
+
 import discord
 from discord.ext import commands
 
@@ -7,8 +8,7 @@ from start import db
 
 
 async def create_new_channel(user: discord.Member, category: discord.CategoryChannel) -> int:
-    """
-    This creates a new channel after user joins "Obecné" voice channel.
+    """This creates a new channel after user joins "Obecné" voice channel.
     :param user: User who joined
     :param category: Voice channel category
     :return: ID of created channel as int
@@ -46,8 +46,7 @@ class AutoVoice(commands.Cog):
         """
         # try to get the channel category of the automatic voice channel
         try:
-            auto_voice_category = self.bot.get_channel(
-                self.channel_id).category
+            auto_voice_category = self.bot.get_channel(self.channel_id).category
 
         except AttributeError:
             return
@@ -62,10 +61,12 @@ class AutoVoice(commands.Cog):
                 await channel.delete()
 
     @commands.Cog.listener()
-    async def on_voice_state_update(self,
-                                    member: discord.Member,
-                                    before: discord.VoiceState,
-                                    after: discord.VoiceState) -> None:
+    async def on_voice_state_update(
+        self,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
+    ) -> None:
         """This function checks if a channel can be deleted after someone leaves.
         :param member: Member, who left
         :param before:
@@ -89,8 +90,7 @@ class AutoVoice(commands.Cog):
 
         try:
             # get the category of automatic voice channels
-            auto_voice_category = self.bot.get_channel(
-                self.channel_id).category
+            auto_voice_category = self.bot.get_channel(self.channel_id).category
 
             is_automatic_voice_channel = before.channel in auto_voice_category.voice_channels
             is_auto_voice_master = before.channel.id == self.channel_id
@@ -109,14 +109,16 @@ class AutoVoice(commands.Cog):
 
     @commands.slash_command(name="set-auto-voice-channel")
     @commands.has_permissions(administrator=True)
-    async def set_auto_voice(self,
-                             ctx: discord.ApplicationContext,
-                             auto_channel_id: int,
-                             storage: discord.Option(
-                                 str,
-                                 description="Lokálně do proměnné či DB (Databáze preferováno)",
-                                 choices=["local", "db"],
-                             )) -> None:
+    async def set_auto_voice(
+        self,
+        ctx: discord.ApplicationContext,
+        auto_channel_id: int,
+        storage: discord.Option(
+            str,
+            description="Lokálně do proměnné či DB (Databáze preferováno)",
+            choices=["local", "db"],
+        ),
+    ) -> None:
         """Set the automatic voice primary ID to the one specified by the user.
         :param ctx: Context of slash command
         :param auto_channel_id: ID that should be set as int
@@ -136,6 +138,12 @@ class AutoVoice(commands.Cog):
             return
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
+        any type of error.
+        :param ctx: Context of slash command
+        :param error: Error that happened in a cog
+        :return: None
+        """
         await send_error_message_to_user(ctx, error)
 
 

@@ -1,6 +1,8 @@
 """This module is for semester switching, wow."""
-import math
+
 import asyncio
+import math
+
 import discord
 from discord.ext import commands
 
@@ -8,15 +10,12 @@ from error_handling import send_error_message_to_user
 from start import db
 
 
-async def switch_to_active(category: discord.CategoryChannel, category_name: list,
-                           visited_categories: list) -> None:
-    """
-    Removes - archive from name
+async def switch_to_active(category: discord.CategoryChannel, category_name: list, visited_categories: list) -> None:
+    """Removes - archive from name
     Adds a role (prvák, druhák...) and enables View Channel for the role
     Disallows view channel for everyone
     Allows To Send Messages, Send Messages in Threads and Create Private/Public threads for everyone
     """
-
     # role_id of the given semester category
     year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
     role_to_search = f"{year}_year_role_id"
@@ -32,7 +31,7 @@ async def switch_to_active(category: discord.CategoryChannel, category_name: lis
         create_public_threads=True,
         create_private_threads=True,
         send_messages_in_threads=True,
-        send_messages=True
+        send_messages=True,
     )
 
     # Name of a channel
@@ -47,15 +46,12 @@ async def switch_to_active(category: discord.CategoryChannel, category_name: lis
         await channel.edit(sync_permissions=True)
 
 
-async def switch_to_archived(category: discord.CategoryChannel, category_name: list,
-                             visited_categories: list) -> None:
-    """
-    Adds - archive to a category name
+async def switch_to_archived(category: discord.CategoryChannel, category_name: list, visited_categories: list) -> None:
+    """Adds - archive to a category name
     Removes a role (prvák, druhák...)
     Disallows public/private threads, send messages in them and sending messages overall for everyone
     Resets View Channel for everyone to its default state
     """
-
     # role_id of the given semester category
     year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
     role_to_search = f"{year}_year_role_id"
@@ -68,8 +64,9 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
     for role, overwrite in category.overwrites.items():
         if role.name == role_from_db.name:
             role_to_remove = discord.utils.get(category.guild.roles, id=role_id)
-            new_overwrites = {role: overwrite for role, overwrite in category.overwrites.items() if
-                              role != role_to_remove}
+            new_overwrites = {
+                role: overwrite for role, overwrite in category.overwrites.items() if role != role_to_remove
+            }
             break
 
     new_overwrites[category.guild.default_role] = discord.PermissionOverwrite(
@@ -77,7 +74,7 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
         create_private_threads=False,
         send_messages_in_threads=False,
         send_messages=False,
-        view_channel=None
+        view_channel=None,
     )
 
     # Name of a channel
@@ -93,26 +90,29 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
 
 
 async def sort_categories(ctx: discord.ApplicationContext) -> None:
-    """
-    This function will sort categories, so the active one will be above voice channels, and archived will be under.
+    """This function will sort categories, so the active one will be above voice channels, and archived will be under.
 
     :param ctx:
     :return: None
     """
-
     try:
         categories = ctx.guild.categories
 
         # list of categories (divided on active and archived)
-        archived_categories = [category for category in categories if
-                               len(category.name.split()) == 4 and category.name.split()[3] == "archiv"]
-        active_categories = [category for category in categories if
-                             len(category.name.split()) == 2 and category.name.split()[1] == "semestr"]
+        archived_categories = [
+            category
+            for category in categories
+            if len(category.name.split()) == 4 and category.name.split()[3] == "archiv"
+        ]
+        active_categories = [
+            category
+            for category in categories
+            if len(category.name.split()) == 2 and category.name.split()[1] == "semestr"
+        ]
 
         # If semester categories were empty
         if len(archived_categories) == 0 and len(active_categories) == 0:
-            await ctx.followup.send(
-                "Příkaz byl proveden, ale nebyly nalezeny žádné kategorie, které by byly změněny.")
+            await ctx.followup.send("Příkaz byl proveden, ale nebyly nalezeny žádné kategorie, které by byly změněny.")
             return
 
         # sorted by ascending order by first number (x. semestr)
@@ -135,12 +135,12 @@ async def sort_categories(ctx: discord.ApplicationContext) -> None:
         # Only god and I knew how this works, now only god knows
         # I take all categories before voice category and remove semester categories
         first_half = categories[:voice_category_pos]
-        first_half = [item for item in first_half if
-                      item not in archived_categories and item not in active_categories]
+        first_half = [item for item in first_half if item not in archived_categories and item not in active_categories]
         # The second half is after voice category, the same logic
         second_half = categories[voice_category_pos:]
-        second_half = [item for item in second_half if
-                       item not in archived_categories and item not in active_categories]
+        second_half = [
+            item for item in second_half if item not in archived_categories and item not in active_categories
+        ]
         # Removed voice category from the second half as it is included and I want to add it manually later myself
         second_half.remove(voice_category)
 
@@ -182,12 +182,10 @@ async def sort_categories(ctx: discord.ApplicationContext) -> None:
 
 
 async def warn_user(ctx: discord.ApplicationContext) -> bool:
-    """
-    This function will create a message with buttons to warn an administrator before using this command accidentally.
+    """This function will create a message with buttons to warn an administrator before using this command accidentally.
     :param ctx: Slash command context
     :return: True if command was accepted by administrator and False if declined
     """
-
     # Create an Event to signal when a button is pressed
     event = asyncio.Event()
 
@@ -200,8 +198,7 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
 
     # Callbacks
     async def accept_callback(interaction: discord.Interaction) -> None:
-        """
-        It is called when a user accepts the command via green button.
+        """It is called when a user accepts the command via green button.
         :param interaction: Interaction with button from user
         :return: None
         """
@@ -215,8 +212,7 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
         event.set()
 
     async def decline_callback(interaction: discord.Interaction) -> None:
-        """
-        It is called when a user declines the command via red button.
+        """It is called when a user declines the command via red button.
         :param interaction: Interaction with button from user
         :return: None
         """
@@ -241,7 +237,9 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
     message: discord.Message | None = await ctx.followup.send(
         "VAROVÁNÍ: Tento příkaz prohodí všechny semestry a přehází jejich role, "
         "prosím, ujistěte se, že je nastaveno ID pro voice category a ID všech"
-        "rolí studentů.", view=view)
+        "rolí studentů.",
+        view=view,
+    )
 
     # Wait for the event to be set or for the timeout
     try:
@@ -259,18 +257,18 @@ class SemesterSwitching(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
 
-    @commands.slash_command(name='switch-semester',
-                            description='Tento příkaz přehází semestry do správných kategorii pro nový semestr.')
+    @commands.slash_command(
+        name="switch-semester",
+        description="Tento příkaz přehází semestry do správných kategorii pro nový semestr.",
+    )
     @commands.has_permissions(administrator=True)
     async def switch_semester(self, ctx: discord.ApplicationContext) -> None:
-        """
-        PREREQUISITES
+        """PREREQUISITES
         Channel name is in this way: "x. semestr" or "x. semestr - archiv" and only 0-9 is supported right now.
         Discord role ID will be inserted in DB with name x_year_role_id with value of ID (int) of a given role.
         Discord voice channel category ID will be inserted in DB with name voice_category_id.
         (Can be obtained via discord when activating developer mode and then right-clicking on a role)
         """
-
         # This is just for error purposes
         visited_categories = []
         try:
@@ -280,8 +278,7 @@ class SemesterSwitching(commands.Cog):
             if await warn_user(ctx) is False:
                 return
 
-            await ctx.followup.send("Příkaz může trvat několik minut kvůli API callům. Provádím...",
-                                    ephemeral=True)
+            await ctx.followup.send("Příkaz může trvat několik minut kvůli API callům. Provádím...", ephemeral=True)
 
             for category in ctx.guild.categories:
                 category_name = category.name.split()
@@ -302,15 +299,26 @@ class SemesterSwitching(commands.Cog):
             text = " | ".join([category.name for category in visited_categories])
             if len(visited_categories) == 0:
                 text = "NO CATEGORIES"
-            raise Exception("API neodpovědělo do 15 minut. Channely, které mohly být ovlivněny, jsou vypsány společně s"
-                            "chybovou hláškou, která stála za pád tohoto commandu. " + text + " " + str(e)) from e
+            raise Exception(
+                "API neodpovědělo do 15 minut. Channely, které mohly být ovlivněny, jsou vypsány společně s"
+                "chybovou hláškou, která stála za pád tohoto commandu. " + text + " " + str(e),
+            ) from e
         except Exception as e:
             text = " | ".join([category.name for category in visited_categories])
             raise Exception(
                 "Něco selhalo. Teoreticky ovlivněné kategorie + chybová hláška bude vypsána. KATEGORIE: "
-                + text + " ERROR: " + str(e)) from e
+                + text
+                + " ERROR: "
+                + str(e),
+            ) from e
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
+        any type of error.
+        :param ctx: Context of slash command
+        :param error: Error that happened in a cog
+        :return: None
+        """
         await send_error_message_to_user(ctx, error)
 
 

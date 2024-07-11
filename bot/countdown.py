@@ -1,8 +1,11 @@
 """This is a module that will handle exam countdowns and send them to channels."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 import discord
 from discord.ext import commands, tasks
+
+from error_handling import send_error_message_to_user
 
 
 class CountDown(commands.Cog):
@@ -16,8 +19,7 @@ class CountDown(commands.Cog):
 
     @tasks.loop(hours=12, minutes=1, seconds=1)
     async def start_countdown_called(self) -> None:
-        """
-        Function that handles sending messages with time remaining and repeats itself after x hours.
+        """Function that handles sending messages with time remaining and repeats itself after x hours.
         :return: None
         """
         if self.message_to_delete is not None:
@@ -32,8 +34,7 @@ class CountDown(commands.Cog):
         cest = timezone(timedelta(hours=2))
 
         def is_dst(dt: datetime) -> bool:
-            """
-            Returns if dst.
+            """Returns if dst.
             :param dt: Datetime
             :return: Bool
             """
@@ -64,12 +65,12 @@ class CountDown(commands.Cog):
         self.message_to_delete = await channel.send(
             f"***Tvá smrt v podobě zkoušky z APPS přichází za "
             f"{hours} {hours_str} {minutes} {minutes_str} a {seconds} {seconds_str}.*** {emoji}\n"
-            f"*||Zlé hlasy říkají, že úspěšnost je 50%. :skull:||*")
+            f"*||Zlé hlasy říkají, že úspěšnost je 50%. :skull:||*",
+        )
 
-    @commands.slash_command(name='start-countdown')
+    @commands.slash_command(name="start-countdown")
     async def start_countdown(self, ctx: discord.ApplicationContext) -> None:
-        """
-        The slash command that activates the countdown in a given channel.
+        """The slash command that activates the countdown in a given channel.
         :param ctx: Slash command context
         :return: None
         """
@@ -81,6 +82,15 @@ class CountDown(commands.Cog):
         self.ctx = ctx
         await ctx.respond("Odpočet byl započat.", ephemeral=True)
         self.start_countdown_called.start()
+
+    async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
+        """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
+        any type of error.
+        :param ctx: Context of slash command
+        :param error: Error that happened in a cog
+        :return: None
+        """
+        await send_error_message_to_user(ctx, error)
 
 
 def setup(bot: discord.Bot) -> None:
