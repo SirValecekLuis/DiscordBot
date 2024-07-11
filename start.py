@@ -29,11 +29,11 @@ def load_cogs() -> None:
     current_dir = os.path.dirname(current_file)
 
     # "bot" folder path
-    bot_dir = os.path.join(current_dir, 'bot')
+    bot_dir = os.path.join(current_dir, "bot")
 
     # Checks if "bot" folder exists
     if not os.path.exists(bot_dir):
-        print("Složka 'bot' nebyla nalezena.")
+        print("Složka bot nebyla nalezena.")
         return
 
     # Get all python files in folder "bot"
@@ -43,7 +43,7 @@ def load_cogs() -> None:
     # Get names without .py
     cog_list = [os.path.splitext(file)[0] for file in python_files]
 
-    # Remove __init__ as it is useless and it would cause an error
+    # Remove __init__ as it is useless, and it would cause an error
     try:
         cog_list.remove("__init__")
     except ValueError:
