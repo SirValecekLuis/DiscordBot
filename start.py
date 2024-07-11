@@ -16,6 +16,7 @@ bot = commands.Bot(intents=intents)
 # using Database class from database.py
 db = Database(settings.database_login)
 
+
 def load_cogs() -> None:
     """
     This function will load all the cogs based on the files from bot folder.
