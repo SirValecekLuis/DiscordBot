@@ -11,7 +11,8 @@ from start import db
 
 
 async def switch_to_active(category: discord.CategoryChannel, category_name: list, visited_categories: list) -> None:
-    """Removes - archive from name
+    """
+    Removes - archive from name
     Adds a role (prvák, druhák...) and enables View Channel for the role
     Disallows view channel for everyone
     Allows To Send Messages, Send Messages in Threads and Create Private/Public threads for everyone
@@ -47,7 +48,8 @@ async def switch_to_active(category: discord.CategoryChannel, category_name: lis
 
 
 async def switch_to_archived(category: discord.CategoryChannel, category_name: list, visited_categories: list) -> None:
-    """Adds - archive to a category name
+    """
+    Adds - archive to a category name
     Removes a role (prvák, druhák...)
     Disallows public/private threads, send messages in them and sending messages overall for everyone
     Resets View Channel for everyone to its default state
@@ -60,15 +62,15 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
         raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
     role_from_db = category.guild.get_role(role_id)
 
+    # Find and remove a role from given category
     new_overwrites = category.overwrites
     for role, overwrite in category.overwrites.items():
-        if role.name == role_from_db.name:
-            role_to_remove = discord.utils.get(category.guild.roles, id=role_id)
-            new_overwrites = {
-                role: overwrite for role, overwrite in category.overwrites.items() if role != role_to_remove
-            }
+        if role.id == role_from_db.id:
+            new_overwrites = {role: overwrite for role, overwrite in category.overwrites.items() if
+                              role != role_from_db}
             break
 
+    # Change permissions of given category
     new_overwrites[category.guild.default_role] = discord.PermissionOverwrite(
         create_public_threads=False,
         create_private_threads=False,
@@ -90,25 +92,19 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
 
 
 async def sort_categories(ctx: discord.ApplicationContext) -> None:
-    """This function will sort categories, so the active one will be above voice channels, and archived will be under.
-
-    :param ctx:
+    """
+    This function will sort categories, so the active one will be above voice channels, and archived will be under.
+    :param ctx: Context of slash command
     :return: None
     """
     try:
         categories = ctx.guild.categories
 
         # list of categories (divided on active and archived)
-        archived_categories = [
-            category
-            for category in categories
-            if len(category.name.split()) == 4 and category.name.split()[3] == "archiv"
-        ]
-        active_categories = [
-            category
-            for category in categories
-            if len(category.name.split()) == 2 and category.name.split()[1] == "semestr"
-        ]
+        archived_categories = [category for category in categories
+                               if len(category.name.split()) == 4 and category.name.split()[3] == "archiv"]
+        active_categories = [category for category in categories
+                             if len(category.name.split()) == 2 and category.name.split()[1] == "semestr"]
 
         # If semester categories were empty
         if len(archived_categories) == 0 and len(active_categories) == 0:
@@ -133,19 +129,21 @@ async def sort_categories(ctx: discord.ApplicationContext) -> None:
         voice_category_pos = voice_category.position
 
         # Only god and I knew how this works, now only god knows
+
         # I take all categories before voice category and remove semester categories
         first_half = categories[:voice_category_pos]
         first_half = [item for item in first_half if item not in archived_categories and item not in active_categories]
+
         # The second half is after voice category, the same logic
         second_half = categories[voice_category_pos:]
-        second_half = [
-            item for item in second_half if item not in archived_categories and item not in active_categories
-        ]
+        second_half = [item for item in second_half if
+                       item not in archived_categories and item not in active_categories]
+
         # Removed voice category from the second half as it is included and I want to add it manually later myself
         second_half.remove(voice_category)
 
         # In this part, I will put the categories in order I would like to have them
-        # First, I take channels that are before semester categories
+        # First, I take categories that are before semester categories
         sorted_categories = []
         index = 0
         for category in first_half:
@@ -197,32 +195,23 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
     decline_button = discord.ui.Button(style=discord.ButtonStyle.red, label="Odmítnout")
 
     # Callbacks
-    async def accept_callback(interaction: discord.Interaction) -> None:
+    async def accept_callback(interaction: discord.Interaction) -> None:    # pylint: disable=unused-argument
         """It is called when a user accepts the command via green button.
-        :param interaction: Interaction with button from user
         :return: None
         """
         nonlocal accepted, message
         accepted = True
-        try:
-            await message.delete()
-        except discord.NotFound:
-            ...
-        await interaction.response.send_message("Příkaz byl přijat.", ephemeral=True)
+
         event.set()
 
-    async def decline_callback(interaction: discord.Interaction) -> None:
+    async def decline_callback(interaction: discord.Interaction) -> None:   # pylint: disable=unused-argument
         """It is called when a user declines the command via red button.
         :param interaction: Interaction with button from user
         :return: None
         """
         nonlocal accepted, message
         accepted = False
-        try:
-            await message.delete()
-        except discord.NotFound:
-            ...
-        await interaction.response.send_message("Příkaz byl odmítnut a tedy nebude proveden.", ephemeral=True)
+
         event.set()
 
     accept_button.callback = accept_callback
@@ -236,8 +225,7 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
     # Final message
     message: discord.Message | None = await ctx.followup.send(
         "VAROVÁNÍ: Tento příkaz prohodí všechny semestry a přehází jejich role, "
-        "prosím, ujistěte se, že je nastaveno ID pro voice category a ID všech"
-        "rolí studentů.",
+        "prosím, ujistěte se, že je nastaveno ID pro voice category a ID všech rolí studentů.",
         view=view,
     )
 
@@ -246,7 +234,12 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
         await asyncio.wait_for(event.wait(), timeout=30)
     except asyncio.TimeoutError:
         await ctx.followup.send("Čas vypršel. Operace zrušena.", ephemeral=True)
+        await message.delete()
         return False
+
+    if message is not None:
+        await message.edit(content="Příkaz byl úspěšně přijat! Příkaz může trvat několik minut kvůli API callům. "
+                                   "Provádím...", view=None)
 
     return accepted
 
@@ -275,11 +268,11 @@ class SemesterSwitching(commands.Cog):
             # Discord API takes way too long to respond
             await ctx.defer(ephemeral=True)
 
+            # Warn admin before using this command
             if await warn_user(ctx) is False:
                 return
 
-            await ctx.followup.send("Příkaz může trvat několik minut kvůli API callům. Provádím...", ephemeral=True)
-
+            # Go through all the categories
             for category in ctx.guild.categories:
                 category_name = category.name.split()
 

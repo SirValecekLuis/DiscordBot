@@ -64,6 +64,7 @@ práce.
 - Každý modul **musí** obsahovat funkci `setup` (stačí zkopírovat z ostatních modulů a upravit trošku pro svoji třídu).
 - V každém Cogu **musí** být implementována funkce `cog_command_error` (stačí zkopírovat z ostatních modulů).
 - Každý modul **musí** být psán v anglickém jazyce s výjimkou `print()` a `.respond()` či podobných funkcí, které informují uživatele/programátora o tom co se děje, ty **musí** být psány česky.
+- Celý bot je napsaný asynchronním způsobem, je tedy **zakázáno** používat jakékoliv časově náročné věci, které **nejsou asynchronní** a je potřeba používat knihovny tomu uzpůsobené (např. asyncio), hlavně pro delay `asyncio.sleep()`
 
 ### 🧹 Kvalita kódu
 

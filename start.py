@@ -49,7 +49,7 @@ def load_cogs() -> None:
     except ValueError:
         ...
 
-    # Load every cog in cog_list
+    # Load every cog from cog_list
     for cog in cog_list:
         bot.load_extension(f"bot.{cog}")
 
