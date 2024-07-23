@@ -195,8 +195,10 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
     decline_button = discord.ui.Button(style=discord.ButtonStyle.red, label="Odmítnout")
 
     # Callbacks
-    async def accept_callback(interaction: discord.Interaction) -> None:    # pylint: disable=unused-argument
-        """It is called when a user accepts the command via green button.
+    async def accept_callback(interaction: discord.Interaction) -> None:  # pylint: disable=unused-argument
+        """
+        It is called when a user accepts the command via green button.
+        :param interaction: Interaction with button from user
         :return: None
         """
         nonlocal accepted, message
@@ -204,8 +206,9 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
 
         event.set()
 
-    async def decline_callback(interaction: discord.Interaction) -> None:   # pylint: disable=unused-argument
-        """It is called when a user declines the command via red button.
+    async def decline_callback(interaction: discord.Interaction) -> None:  # pylint: disable=unused-argument
+        """
+        It is called when a user declines the command via red button.
         :param interaction: Interaction with button from user
         :return: None
         """
@@ -237,9 +240,11 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
         await message.delete()
         return False
 
-    if message is not None:
+    if message is not None and accepted is True:
         await message.edit(content="Příkaz byl úspěšně přijat! Příkaz může trvat několik minut kvůli API callům. "
                                    "Provádím...", view=None)
+    elif message is not None and accepted is False:
+        await message.edit(content="Příkaz byl odmítnut a nebude proveden.", view=None)
 
     return accepted
 
