@@ -1,4 +1,4 @@
-"""This module is for help commands bot will provide."""
+"""This module is for help commands bot is going to provide."""
 
 import discord
 from discord.ext import commands
