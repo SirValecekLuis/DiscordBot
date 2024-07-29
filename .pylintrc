@@ -1,0 +1,4 @@
+[FORMAT]
+max-line-length=120
+[MESSAGES CONTROL]
+disable=broad-exception-raised, broad-exception-caught, no-member, pointless-string-statement, too-many-locals, import-error, too-few-public-methods

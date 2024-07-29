@@ -1,11 +1,10 @@
 """This file will be responsible for sending error messages whenever a command unexpectedly fails"""
 import discord
+from discord.ext import commands
 
 CHANNEL_NAME = "bot-development"
 
 
-# TODO: Test if the function is triggered by errors such as no permission or no
-# It is not. Fix?
 async def send_error_message_to_user(ctx: discord.ApplicationContext, error: discord.DiscordException) -> None:
     """
     Sends back to user a warning when slash command fails and info in bot-development channel
@@ -13,6 +12,11 @@ async def send_error_message_to_user(ctx: discord.ApplicationContext, error: dis
     :param error: raised exception from slash command
     :return: None
     """
+
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.respond("Nemáš na toto práva.", ephemeral=True)
+        return
+
     error_message = (f"Uživatel {ctx.user.mention} použil příkaz **->{ctx.command.qualified_name}<-** "
                      f"který selhal.\nChyba: **{repr(error)}**")
 
@@ -21,7 +25,10 @@ async def send_error_message_to_user(ctx: discord.ApplicationContext, error: dis
                           "moderátorů.", ephemeral=True)
         guild = ctx.guild
         channel = discord.utils.get(guild.channels, name=CHANNEL_NAME)
+        if channel is None:
+            raise Exception("Channel bot-development neexistuje.")
         await channel.send(error_message)
-    except AttributeError:
+    except Exception as e:
         print(f"Channel {CHANNEL_NAME} neexistuje, printuji do konzole\n")
         print(error_message)
+        print(e)
