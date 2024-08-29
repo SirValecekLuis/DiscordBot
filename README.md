@@ -52,19 +52,21 @@ discordbot/
 
 ```
 
-# Pravidla pro přispívání do projektu
-
-## 📚 Pravidla pro moduly (soubory ve složce `bot`)
+# Pravidla a jak příspívat do projektu
 
 Testovací discord s tokenem můžete dostat při požádání uživatele `Tobias(tobias4042)` na discordu FEI pro usnadnění
-práce.
+práce. Taktéž vám v rychlosti vysvětlím strukturu a způsob fungování bota, pokud se chcete podílet na vývoji.
+
+## 📚 Pravidla pro moduly (soubory ve složce `bot`)
 
 ### 🔧 Struktura modulů
 
 - Každý modul **musí** obsahovat funkci `setup` (stačí zkopírovat z ostatních modulů a upravit trošku pro svoji třídu).
 - V každém Cogu **musí** být implementována funkce `cog_command_error` (stačí zkopírovat z ostatních modulů).
-- Každý modul **musí** být psán v anglickém jazyce s výjimkou `print()` a `.respond()` či podobných funkcí, které informují uživatele/programátora o tom co se děje, ty **musí** být psány česky.
-- Celý bot je napsaný asynchronním způsobem, je tedy **zakázáno** používat jakékoliv časově náročné věci, které **nejsou asynchronní** a je potřeba používat knihovny tomu uzpůsobené (např. asyncio), hlavně pro delay `asyncio.sleep()`
+- Každý modul **musí** být psán v anglickém jazyce s výjimkou `print()` a `.respond()` či podobných funkcí, které
+  informují uživatele/programátora o tom co se děje, ty **musí** být psány česky.
+- Celý bot je napsaný asynchronním způsobem, je tedy **zakázáno** používat jakékoliv časově náročné věci, které **nejsou
+  asynchronní** a je potřeba používat knihovny tomu uzpůsobené (např. asyncio), hlavně pro delay `asyncio.sleep()`
 
 ### 🧹 Kvalita kódu
 
@@ -82,6 +84,6 @@ práce.
 ### ✅ Kontrola kvality
 
 - **Celý PR musí projít Pylint checkem**.
-- Schválení alespoň 2 contributory.
+- Schválení alespoň 1 contributorem.
 
 Hodně štěstí s PR! 🎉

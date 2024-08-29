@@ -220,21 +220,36 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
     accept_button.callback = accept_callback
     decline_button.callback = decline_callback
 
+    timeout_time = 10 * 60
+
     # View with buttons
-    view = discord.ui.View(timeout=30)  # 30 second time wait
+    view = discord.ui.View(timeout=timeout_time)
     view.add_item(accept_button)
     view.add_item(decline_button)
 
     # Final message
     message: discord.Message | None = await ctx.followup.send(
-        "VAROVÁNÍ: Tento příkaz prohodí všechny semestry a přehází jejich role, "
-        "prosím, ujistěte se, že je nastaveno ID pro voice category a ID všech rolí studentů.",
+        "**VAROVÁNÍ: Tento příkaz prohází pořadí všech semestr channelů a nastaví je na další semestr.**\n\n"
+        "To zahrnuje i přiřazení/odebrání práv a rolí jednotlivým kategoriím. Proto, aby příkaz fungoval správně, je "
+        "potřeba nastavit do databáze ID všech studentských rolí a taktéž ID kategorie 'voice_channels'. "
+        "Proměnné jsou typu INT, tedy celé číslo.\n\n"
+        "ID studentských rolí se ukládají pod názvem **x_year_role_id**, kde 'x' je nahrazeno ročníkem dané role."
+        "Takže například 1_year_role_id by byl název proměnné kam uložit ID pro roli prváka.\n\n"
+        "Pro 'voice_channels' kategorii je potřeba uložit ID kategorie pod proměnnou **voice_category_id**. "
+        "Toho lze docílit příkazem /insert-or-update-value, kterým lze nastavit nebo aktualizovat proměnné.\n\n"
+        "Taktéž příkaz /print-value-from-db dokáže vypsat hodnotu jednotlivé proměnné pro kontrolu správnosti. "
+        "Pro vypsání názvů všech uložených proměnných v DB lze využít příkaz /print-names-from-db.\n\n"
+        "ID rolí a kategorii se dají zobrazit po zapnutí developer modu na discordu. (Advanced -> Dev mode)\n\n"
+        "**Taktéž názvy channelů musí být přesně ve tvaru 'x. semestr' a nebo 'x. semestr - archiv'. "
+        "Aktuálně je implementace omezená pouze na to, že funguje na semestry s čísly 0-9, tudíž channely s názvem "
+        "10. semestr a dále prozatím nejsou podporovány.**\n\n"
+        f"*Příkaz bude po {timeout_time // 60} minutách automaticky odmítnut a nebude proveden.*",
         view=view,
     )
 
     # Wait for the event to be set or for the timeout
     try:
-        await asyncio.wait_for(event.wait(), timeout=30)
+        await asyncio.wait_for(event.wait(), timeout=timeout_time)
     except asyncio.TimeoutError:
         await ctx.followup.send("Čas vypršel. Operace zrušena.", ephemeral=True)
         await message.delete()
@@ -242,9 +257,11 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
 
     if message is not None and accepted is True:
         await message.edit(content="Příkaz byl úspěšně přijat! Příkaz může trvat několik minut kvůli API callům. "
-                                   "Provádím...", view=None)
+                                   "Nevolejte příkaz znovu! Provádím...", view=None)
     elif message is not None and accepted is False:
         await message.edit(content="Příkaz byl odmítnut a nebude proveden.", view=None)
+    else:
+        return False
 
     return accepted
 
@@ -267,6 +284,7 @@ class SemesterSwitching(commands.Cog):
         Discord voice channel category ID will be inserted in DB with name voice_category_id.
         (Can be obtained via discord when activating developer mode and then right-clicking on a role)
         """
+
         # This is just for error purposes
         visited_categories = []
         try:
@@ -279,7 +297,7 @@ class SemesterSwitching(commands.Cog):
 
             # Go through all the categories
             for category in ctx.guild.categories:
-                category_name = category.name.split()
+                category_name = category.name.lower().split()
 
                 # The Semester is active and should be put as archived
                 if len(category_name[0]) == 2 and category_name[1] == "semestr" and len(category_name) == 2:
