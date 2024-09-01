@@ -256,14 +256,75 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
         return False
 
     if message is not None and accepted is True:
-        await message.edit(content="Příkaz byl úspěšně přijat! Příkaz může trvat několik minut kvůli API callům. "
-                                   "Nevolejte příkaz znovu! Provádím...", view=None)
+        await message.edit(content="Příkaz byl úspěšně přijat a proběhne kontrola před jeho spuštěním!", view=None)
     elif message is not None and accepted is False:
         await message.edit(content="Příkaz byl odmítnut a nebude proveden.", view=None)
     else:
         return False
 
     return accepted
+
+
+async def assert_variables(ctx: discord.ApplicationContext) -> bool:
+    """
+    This function will check all the variables from the DB and if they exist, then compares them with discord
+    guild(server).
+    If there are any IDs not matching IDs from the guild or any variable is missing in the DB an error
+    will be raised.
+    :ctx: Command context
+    :message: The first message sent by using this command, so we can edit the message
+    :return: True, if everything is correct, else False
+    """
+
+    try:
+        ids = []
+
+        # Get IDs from roles
+        for category in ctx.guild.categories:
+            category_name = category.name.lower().split()
+
+            if (len(category_name[0]) == 2 and category_name[1] == "semestr" and
+                    (len(category_name) == 2 or category_name[3] == "archiv")):
+
+                year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
+                role_to_search = f"{year}_year_role_id"
+                role_id = await db.get_variable_from_variables(role_to_search)
+
+                if role_id is None:
+                    raise AssertionError(f"Nenalezeno ID role {role_to_search} v DB.")
+
+                if role_id not in ids:
+                    ids.append(role_id)
+
+        # Check voice_category_id is set
+        voice_id = await db.get_variable_from_variables("voice_category_id")
+        if voice_id is None:
+            raise AssertionError("voice_category_id nenalezeno v databázi.")
+
+        # Check that voice_category_id exists with said ID
+        for category in ctx.guild.categories:
+            if category.id == voice_id:
+                break
+        else:
+            raise AssertionError("voice_category_id se neshoduje s žádnou kategorii na serveru.")
+
+        # Check that every student role exists on that server based on values from the DB
+        for role in ctx.guild.roles:
+            if role.id in ids:
+                ids.remove(role.id)
+
+        # If any ID is left, that means it was not found on that server
+        if len(ids) != 0:
+            raise AssertionError("Zkontrolujte, že veškerá ID rolí studentů jsou správně nastavena.")
+
+        await ctx.followup.send("Kontrola proběhla v pořádku a příkaz byl spuštěn. "
+                                "Příkaz může trvat několik minut kvůli API callům. Nevolejte příkaz znovu! Provádím...",
+                                ephemeral=True)
+        return True
+    except AssertionError as e:
+        # Remove the message about command is being processed and send a new message saying the command failed
+        await ctx.followup.send(f"Příkaz neprošel kontrolou a nebude spuštěn. Důvod: {e}", ephemeral=True)
+        return False
 
 
 class SemesterSwitching(commands.Cog):
@@ -291,8 +352,12 @@ class SemesterSwitching(commands.Cog):
             # Discord API takes way too long to respond
             await ctx.defer(ephemeral=True)
 
-            # Warn admin before using this command
+            # If was not accepted, stop the command
             if await warn_user(ctx) is False:
+                return
+
+            # First assert everything is correct and ready for the command after admin approves the command
+            if await assert_variables(ctx) is False:
                 return
 
             # Go through all the categories

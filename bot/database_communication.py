@@ -55,7 +55,7 @@ class DatabaseCommunication(commands.Cog):
             await db.insert_or_update_into_variables(name, value)
 
         await ctx.respond(
-            f"Hodnota s názvnem {name} typu {value_type} a hodnotou {value} vložena/změněna úspěšně.",
+            f"Hodnota s názvem {name} typu {value_type} a hodnotou {value} vložena/změněna úspěšně.",
             ephemeral=True,
         )
 
