@@ -5,7 +5,11 @@ from discord.ext import commands
 
 from error_handling import send_error_message_to_user
 
-WELCOME_STR = "Cus picus"
+WELCOME_STR = '''Vítej v komunitě oboru informatiky, u nás najdeš vypracované \
+materiály z minulých let v pinned messages.
+Budeme rádi, když budete sdílet náš server mezi spolužáky.'''
+
+DISCORD_URL_LINK = 'https://discord.gg/fei-informatika'
 
 
 class WelcomeMessage(commands.Cog):
@@ -20,7 +24,18 @@ class WelcomeMessage(commands.Cog):
         :param member: Member that joined the discord server
         :return: None
         """
-        await member.send(content=WELCOME_STR)
+
+        guild = member.guild
+
+        if guild.premium_tier >= 3:
+            await member.send(content=f"{WELCOME_STR} {DISCORD_URL_LINK}")
+
+        else:
+            guild_channel = guild.channels[0]
+            invite = await guild_channel.create_invite(
+                max_age=604800, reason='Invite link poslaný novému uživateli')
+
+            await member.send(content=f"{WELCOME_STR} {invite.url}")
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
