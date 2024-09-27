@@ -31,11 +31,7 @@ class WelcomeMessage(commands.Cog):
             await member.send(content=f"{WELCOME_STR} {DISCORD_URL_LINK}")
 
         else:
-            guild_channel = guild.channels[0]
-            invite = await guild_channel.create_invite(
-                max_age=604800, reason='Invite link poslaný novému uživateli')
-
-            await member.send(content=f"{WELCOME_STR} {invite.url}")
+            await member.send(content=f"{WELCOME_STR}")
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
