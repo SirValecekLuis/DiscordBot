@@ -46,7 +46,8 @@ class AutoPin(commands.Cog):
                 ) from e
 
     @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction: discord.Reaction) -> None:
+    async def on_reaction_remove(self, reaction: discord.Reaction,
+                                 user: Union[discord.Member, discord.User]) -> None:  # pylint: disable=unused-argument
         """Unpins a message if a certain threshold of reactions
         is no longer being reached
         """
