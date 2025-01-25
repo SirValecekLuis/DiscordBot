@@ -103,7 +103,6 @@ class AutoVoice(commands.Cog):
 
         # check if a channel the member left can be deleted
         # and if the channel doesn't have any members connected, delete it
-        print(f"{can_be_deleted}, {before.channel}, {after.channel}")
         if can_be_deleted and len(before.channel.members) == 0:
             await before.channel.delete()
 
