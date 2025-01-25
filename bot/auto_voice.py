@@ -16,10 +16,7 @@ async def create_new_channel(user: discord.Member, category: discord.CategoryCha
     discord_server = user.guild
 
     # create the voice channel name from username or nickname
-    new_channel_name = user.name
-    if user.nick is not None:
-        new_channel_name = user.nick
-    new_channel_name += "'s channel"
+    new_channel_name = f"{user.display_name}'s channel"
 
     # create the new channel
     created_channel = await discord_server.create_voice_channel(name=new_channel_name, category=category)
@@ -27,7 +24,7 @@ async def create_new_channel(user: discord.Member, category: discord.CategoryCha
     # move the user to the newly created channel
     try:
         await user.move_to(created_channel)
-    except Exception:
+    except discord.HTTPException:
         await created_channel.delete(reason="Uzivatel si to rozmyslel")
         return
 
@@ -106,8 +103,18 @@ class AutoVoice(commands.Cog):
 
         # check if a channel the member left can be deleted
         # and if the channel doesn't have any members connected, delete it
+        print(f"{can_be_deleted}, {before.channel}, {after.channel}")
         if can_be_deleted and len(before.channel.members) == 0:
             await before.channel.delete()
+
+        # Sometimes when user quickly leaves it returns "None|None" case and an empty voice channel remains
+        if before.channel is None and after.channel is None:
+            for channel in self.bot.get_channel(self.channel_id).category.voice_channels:
+                if self.channel_id != channel.id and len(channel.members) == 0:
+                    try:
+                        await channel.delete()
+                    except discord.HTTPException:
+                        ...
 
     @commands.slash_command(name="set-auto-voice-channel")
     @commands.has_permissions(administrator=True)
