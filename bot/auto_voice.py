@@ -25,7 +25,12 @@ async def create_new_channel(user: discord.Member, category: discord.CategoryCha
     created_channel = await discord_server.create_voice_channel(name=new_channel_name, category=category)
 
     # move the user to the newly created channel
-    await user.move_to(created_channel)
+    try:
+        await user.move_to(created_channel)
+    except Exception:
+        await created_channel.delete(reason="Uzivatel si to rozmyslel")
+        return
+
 
     # return the created channel
     return created_channel.id
