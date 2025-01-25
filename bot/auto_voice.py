@@ -31,7 +31,6 @@ async def create_new_channel(user: discord.Member, category: discord.CategoryCha
         await created_channel.delete(reason="Uzivatel si to rozmyslel")
         return
 
-
     # return the created channel
     return created_channel.id
 
@@ -66,10 +65,10 @@ class AutoVoice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(
-        self,
-        member: discord.Member,
-        before: discord.VoiceState,
-        after: discord.VoiceState,
+            self,
+            member: discord.Member,
+            before: discord.VoiceState,
+            after: discord.VoiceState,
     ) -> None:
         """This function checks if a channel can be deleted after someone leaves.
         :param member: Member, who left
@@ -113,14 +112,14 @@ class AutoVoice(commands.Cog):
     @commands.slash_command(name="set-auto-voice-channel")
     @commands.has_permissions(administrator=True)
     async def set_auto_voice(
-        self,
-        ctx: discord.ApplicationContext,
-        auto_channel_id: str,
-        storage: discord.Option(
-            str,
-            description="Uložit lokálně do proměnné či DB (Databáze preferováno)",
-            choices=["local", "db"],
-        ),
+            self,
+            ctx: discord.ApplicationContext,
+            auto_channel_id: str,
+            storage: discord.Option(
+                str,
+                description="Uložit lokálně do proměnné či DB (Databáze preferováno)",
+                choices=["local", "db"],
+            ),
     ) -> None:
         """Set the automatic voice primary ID to the one specified by the user.
         :param ctx: Context of slash command
@@ -128,10 +127,10 @@ class AutoVoice(commands.Cog):
         :param storage: Local variable or database
         :return: None
         """
-        
+
         try:
             auto_channel_id: int = int(auto_channel_id)
-        except:
+        except ValueError:
             ctx.respond("Neplatna hodnota channel id!", ephemeral=True)
             return
 
