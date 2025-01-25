@@ -7,7 +7,7 @@ from error_handling import send_error_message_to_user
 from start import db
 
 
-async def create_new_channel(user: discord.Member, category: discord.CategoryChannel) -> int:
+async def create_new_channel(user: discord.Member, category: discord.CategoryChannel):
     """This creates a new channel after user joins "Obecné" voice channel.
     :param user: User who joined
     :param category: Voice channel category
@@ -42,7 +42,6 @@ class AutoVoice(commands.Cog):
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
         self.channel_id = db.voice_channel_id
-        self.channel_list = []
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -62,7 +61,7 @@ class AutoVoice(commands.Cog):
 
             # if a channel doesn't have any members connected
             # and if it isn't the auto voice creator itself, delete it
-            if not channel.members and not is_auto_voice_master:
+            if len(channel.members) == 0 and not is_auto_voice_master:
                 await channel.delete()
 
     @commands.Cog.listener()
@@ -87,8 +86,7 @@ class AutoVoice(commands.Cog):
             joined_auto_voice_master = after.channel.id == self.channel_id
 
             if joined_auto_voice_master:
-                new_channel = await create_new_channel(member, after.channel.category)
-                self.channel_list.append(new_channel)
+                await create_new_channel(member, after.channel.category)
 
         except AttributeError:
             pass
@@ -109,7 +107,7 @@ class AutoVoice(commands.Cog):
 
         # check if a channel the member left can be deleted
         # and if the channel doesn't have any members connected, delete it
-        if can_be_deleted and not before.channel.members:
+        if can_be_deleted and len(before.channel.members) == 0:
             await before.channel.delete()
 
     @commands.slash_command(name="set-auto-voice-channel")
@@ -117,10 +115,10 @@ class AutoVoice(commands.Cog):
     async def set_auto_voice(
         self,
         ctx: discord.ApplicationContext,
-        auto_channel_id: int,
+        auto_channel_id: str,
         storage: discord.Option(
             str,
-            description="Lokálně do proměnné či DB (Databáze preferováno)",
+            description="Uložit lokálně do proměnné či DB (Databáze preferováno)",
             choices=["local", "db"],
         ),
     ) -> None:
@@ -130,6 +128,13 @@ class AutoVoice(commands.Cog):
         :param storage: Local variable or database
         :return: None
         """
+        
+        try:
+            auto_channel_id: int = int(auto_channel_id)
+        except:
+            ctx.respond("Neplatna hodnota channel id!", ephemeral=True)
+            return
+
         # check if the id should be stored locally
         if storage == "local":
             self.channel_id = auto_channel_id
