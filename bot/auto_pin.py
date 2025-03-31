@@ -17,7 +17,6 @@ class AutoPin(commands.Cog):
         self.bot = bot
         self.pin_emoji = "📌"
         self.pin_threshold = 5
-        self.unpin_threshold = 2
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.Member, discord.User]) -> None:
@@ -44,25 +43,6 @@ class AutoPin(commands.Cog):
                     f"Uživatel, který chtěl pinnout: {user.jump_url}"
                     f"Zpráva k pinnutí: {message.jump_url}",
                 ) from e
-
-    @commands.Cog.listener()
-    async def on_reaction_remove(self, reaction: discord.Reaction,
-                                 user: Union[discord.Member, discord.User]) -> None:  # pylint: disable=unused-argument
-        """Unpins a message if a certain threshold of reactions
-        is no longer being reached
-        """
-        message = reaction.message
-
-        if not message.pinned:
-            return
-
-        yes_count = 0
-
-        for message_reaction in [x for x in message.reactions if x.emoji == self.pin_emoji]:
-            yes_count += message_reaction.count
-
-        if yes_count <= self.unpin_threshold:
-            await message.unpin()
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
