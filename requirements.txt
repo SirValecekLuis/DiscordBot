@@ -2,3 +2,6 @@ py-cord~=2.6.0
 pydantic-settings~=2.3.4
 pymongo~=4.8.0
 audioop-lts; python_version>='3.13'
+aiohttp~=3.12.9
+beautifulsoup4~=4.13.4
+html5lib~=1.1

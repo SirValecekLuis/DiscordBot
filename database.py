@@ -20,6 +20,8 @@ class Database:
             self.__variables: pymongo.collection.Collection = self.__db.Variables
             # For reminder messages
             self.__reminder_messages: pymongo.collection.Collection = self.__db.ReminderMessages
+            # APPS pearls
+            self.__pearls: pymongo.collection.Collection = self.__db.Pearls
 
             count = self.__variables.count_documents({})
             if count == 0:  # If the document does not exist in a variable collection, I will create a new one
@@ -57,6 +59,14 @@ class Database:
             self.__variables.update_one({}, {"$set": {"voice_channel_id": value}})
         else:
             raise TypeError("voice_channel_id must be type int.")
+
+    @property
+    def pearls(self) -> pymongo.collection.Collection:
+        """
+        Returns collection of APPS pearls to work with.
+        :return: Pymongo collection
+        """
+        return self.__pearls
 
     async def find_user_from_database(self, user_id: int) -> Optional[dict]:
         """
