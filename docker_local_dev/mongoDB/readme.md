@@ -8,7 +8,7 @@ Po spuštění je k dispozici:
 
 🗄️ MongoDB databázi na localhost:27017
 
-🌐 Atlas UI na http://localhost:27080
+🌐 Atlas UI na http://localhost:8081
 
 Ve svém .env souboru nastav connection string:
 
