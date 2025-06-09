@@ -60,7 +60,7 @@ pro potřeby testování vašeho bota.
 - V adresáři /DiscordBot se musí nachází .env soubor, který obsahuje 2 řádky, které je potřeba vyplnit.
 - BOT_TOKEN="TOKEN" 
 (ten získáte ze stránky Discordu kde si vytvoříte vlastního bota)
-- DATABASE_LOGIN="LOGIN_STRING" (ten získáte z rozjetí docker-compose.yml ve složce docker_local_dev/mongoDB, kde je README.md s login stringem co budete mít po rozjetí lokální instance mongoDB)
+- DATABASE_LOGIN="LOGIN_STRING" [|-> NÁVOD <-|](docker_local_dev/mongoDB/README.md)
 
 
 ## 📚 Pravidla pro moduly (soubory ve složce `bot`)
