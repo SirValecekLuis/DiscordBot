@@ -52,7 +52,7 @@ class DatabaseCommunication(commands.Cog):
             )
         else:
             # Insert or update in MongoDB
-            await db.insert_or_update_into_variables(name, value)
+            await db.update_one("variables", {}, {name: value})
 
         await ctx.respond(
             f"Hodnota s názvem {name} typu {value_type} a hodnotou {value} vložena/změněna úspěšně.",
@@ -69,7 +69,7 @@ class DatabaseCommunication(commands.Cog):
         :return: None, sends a message with an error or with variable value.
         """
 
-        value = await db.get_variable_from_variables(name)
+        value = await db.find_one("variables", {}, name)
 
         if value is None:
             await ctx.respond(
@@ -90,7 +90,10 @@ class DatabaseCommunication(commands.Cog):
 
         text = "| "
 
-        for var in await db.get_all_variables_names():
+        dict_variables = await db.find("variables")
+        dict_variables = list(dict_variables[0].keys())[1:]
+
+        for var in dict_variables:
             text += var
             text += " | "
 

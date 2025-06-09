@@ -20,7 +20,7 @@ async def switch_to_active(category: discord.CategoryChannel, category_name: lis
     # role_id of the given semester category
     year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
     role_to_search = f"{year}_year_role_id"
-    role_id = await db.get_variable_from_variables(role_to_search)
+    role_id = await db.find_one("variables", {}, role_to_search)
     if role_id is None:
         raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
 
@@ -57,7 +57,7 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
     # role_id of the given semester category
     year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
     role_to_search = f"{year}_year_role_id"
-    role_id = await db.get_variable_from_variables(role_to_search)
+    role_id = await db.find_one("variables", {}, role_to_search)
     if role_id is None:
         raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
     role_from_db = category.guild.get_role(role_id)
@@ -116,7 +116,7 @@ async def sort_categories(ctx: discord.ApplicationContext) -> None:
         active_categories.sort(key=lambda category: int(category.name[0]), reverse=True)
 
         # get id to get a channel
-        voice_category_id = await db.get_variable_from_variables("voice_category_id")
+        voice_category_id = await db.find_one("variables", {}, "voice_category_id")
         if voice_category_id is None:
             raise Exception("voice_category_id nebylo nastaveno do databáze.")
 
@@ -288,7 +288,7 @@ async def assert_variables(ctx: discord.ApplicationContext) -> bool:
 
                 year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
                 role_to_search = f"{year}_year_role_id"
-                role_id = await db.get_variable_from_variables(role_to_search)
+                role_id = await db.find_one("variables", {}, role_to_search)
 
                 if role_id is None:
                     raise AssertionError(f"Nenalezeno ID role {role_to_search} v DB.")
@@ -297,7 +297,7 @@ async def assert_variables(ctx: discord.ApplicationContext) -> bool:
                     ids.append(role_id)
 
         # Check voice_category_id is set
-        voice_id = await db.get_variable_from_variables("voice_category_id")
+        voice_id = await db.find_one("counter", {}, "voice_category_id")
         if voice_id is None:
             raise AssertionError("voice_category_id nenalezeno v databázi.")
 

@@ -31,22 +31,22 @@ async def add_to_counter(user_id: int, count: int, counter: str) -> None:
     :param counter: string based on which counter is supposed to be added (via counter-list above)
     :return: None
     """
-    user = await db.find_user_from_database(user_id)  # Trying to find a user based on user id, returns record or None
+    user = await db.find_one("counter", {"id": user_id})  # Trying to find a user based on user id
     if user:
         count_from_user = user.get(counter)  # Getting actual counter
         if count_from_user:
-            db.counter.update_one({"id": user_id}, {"$set": {counter: count_from_user + count}})
+            await db.update_one("counter", {"id": user_id}, {counter: count_from_user + count})
         else:
-            db.counter.update_one({"id": user_id}, {"$set": {counter: count}})
+            await db.update_one("counter", {"id": user_id}, {counter: count})
         return
 
     # If user was not found, I will create a new one + add all counters
-    db.counter.insert_one({"id": user_id})
+    await db.insert_one("counter", {"id": user_id})
     for counter_from_keys in COUNTERS:
         if counter_from_keys == counter:  # If I find the same counter as was specified, I add count to counter
-            db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: count}})
+            await db.update_one("counter", {"id": user_id}, {counter_from_keys: count})
         else:
-            db.counter.update_one({"id": user_id}, {"$set": {counter_from_keys: 0}})
+            await db.update_one("counter", {"id": user_id}, {counter_from_keys: 0})
 
 
 async def count_words(message: str, words: list) -> int:
@@ -103,7 +103,7 @@ class Counter(commands.Cog):
         if member:  # If optional parameter is filled, then I switch ID to tagged member
             user_id = member.id
 
-        user_from_database = await db.find_user_from_database(user_id)  # User from database
+        user_from_database = await db.find_one("counter", {"id": user_id})   # User from database
 
         if user_from_database is None:  # If a user has no record in database
             if member:

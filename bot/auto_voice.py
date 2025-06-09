@@ -7,11 +7,11 @@ from error_handling import send_error_message_to_user
 from start import db
 
 
-async def create_new_channel(user: discord.Member, category: discord.CategoryChannel):
+async def create_new_channel(user: discord.Member, category: discord.CategoryChannel) -> None:
     """This creates a new channel after user joins "Obecné" voice channel.
     :param user: User who joined
     :param category: Voice channel category
-    :return: ID of created channel as int
+    :return: None
     """
     discord_server = user.guild
 
@@ -26,18 +26,13 @@ async def create_new_channel(user: discord.Member, category: discord.CategoryCha
         await user.move_to(created_channel)
     except discord.HTTPException:
         await created_channel.delete(reason="Uzivatel si to rozmyslel")
-        return
-
-    # return the created channel
-    return created_channel.id
-
 
 class AutoVoice(commands.Cog):
     """A Cog that handles voice category, and it automatically gives a person a voice channel when joined."""
 
     def __init__(self, bot: discord.Bot) -> None:
         self.bot = bot
-        self.channel_id = db.voice_channel_id
+        self.channel_id = None
 
     @commands.Cog.listener()
     async def on_ready(self) -> None:
@@ -46,6 +41,7 @@ class AutoVoice(commands.Cog):
         """
         # try to get the channel category of the automatic voice channel
         try:
+            self.channel_id = await db.find_one("variables", {}, "voice_channel_id")
             auto_voice_category = self.bot.get_channel(self.channel_id).category
 
         except AttributeError:
@@ -147,7 +143,7 @@ class AutoVoice(commands.Cog):
             return
 
         if storage == "db":
-            db.voice_channel_id = auto_channel_id
+            await db.update_one("variables", {}, {"$set": {"voice_channel_id": auto_channel_id}})
             self.channel_id = auto_channel_id
             await ctx.respond("Hodnota nastavena do databáze.", ephemeral=True)
             return
