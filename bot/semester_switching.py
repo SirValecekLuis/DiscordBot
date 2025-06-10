@@ -140,7 +140,13 @@ async def sort_categories(ctx: discord.ApplicationContext) -> None:
                        item not in archived_categories and item not in active_categories]
 
         # Removed voice category from the second half as it is included and I want to add it manually later myself
+        # TODO: fix this, voice category not in second half sometimes?
+        print("haha")
+        print("first", first_half)
+        print("second", second_half)
+        print("voice category", voice_category)
         second_half.remove(voice_category)
+        print("hehe")
 
         # In this part, I will put the categories in order I would like to have them
         # First, I take categories that are before semester categories
@@ -297,7 +303,7 @@ async def assert_variables(ctx: discord.ApplicationContext) -> bool:
                     ids.append(role_id)
 
         # Check voice_category_id is set
-        voice_id = await db.find_one("counter", {}, "voice_category_id")
+        voice_id = await db.find_one("variables", {}, "voice_category_id")
         if voice_id is None:
             raise AssertionError("voice_category_id nenalezeno v databázi.")
 

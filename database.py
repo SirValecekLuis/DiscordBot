@@ -1,5 +1,5 @@
 """This file serves as OOP handling for Mongo DB to ensure more security and fewer risks when handling DB"""
-from typing import Optional
+from typing import Optional, Any, Mapping
 
 import pymongo.collection
 from pymongo import MongoClient
@@ -77,7 +77,7 @@ class Database:
         collection = await self.__get_collection_from_str(collection_name)
         collection.update_one(filter_dict, {"$set": update})
 
-    async def find_one(self, collection_name: str, filter_dict: dict, keyword="") -> dict | None:
+    async def find_one(self, collection_name: str, filter_dict: dict, keyword="") -> Mapping[str, Any] | None | Any:
         """
         This returns one document from a collection based on filter dictionary.
 
@@ -97,7 +97,8 @@ class Database:
 
         return result
 
-    async def find(self, collection_name: str, filter_dict=Optional[dict], sort_dict=Optional[dict]) -> list[dict]:
+    async def find(self, collection_name: str, filter_dict: Optional[dict] = None,
+                   sort_dict: Optional[dict] = None) -> list[dict]:
         """
         This will return all documents from a collection.
 
@@ -115,86 +116,14 @@ class Database:
 
         collection = await self.__get_collection_from_str(collection_name)
 
-        if filter_dict is not None:
+        if filter_dict != {} and sort_dict == {}:
             result = list(collection.find(filter_dict))
-        elif sort_dict is not None:
+        elif sort_dict != {}:
             result = list(collection.find(filter_dict, sort_dict))
         else:
             result = list(collection.find())
 
         return result
-
-    # ---------------------------------------------------------------------------------------------------------------
-    # @property
-    # def voice_channel_id(self) -> Optional[int]:
-    #     """
-    #     This returns ID of voice-channel that was set in DB.
-    #     :return: None or int
-    #     """
-    #     return self.__variables.find_one()["voice_channel_id"]
-    #
-    # @voice_channel_id.setter
-    # def voice_channel_id(self, value) -> None:
-    #     """
-    #     Throws TypeError if incorrect value is tried to be set otherwise voice_channel_id will be update in DB
-    #     :param value: INT number of voice_channel_id
-    #     :return: None
-    #     """
-    #     if isinstance(value, int):
-    #         self.__variables.update_one({}, {"$set": {"voice_channel_id": value}})
-    #     else:
-    #         raise TypeError("voice_channel_id must be type int.")
-    #
-    # async def find_user_from_database(self, user_id: int) -> Optional[dict]:
-    #     """
-    #     Function is supposed to find a user from a database based on ID and return a record from DB else None
-    #     :param user_id: ID of discord member
-    #     :return: None if no record is found else record (dictionary)
-    #     """
-    #
-    #     return self.__counter.find_one({"id": user_id})
-    #
-    # async def insert_or_update_into_variables(self, name: str, value: object) -> None:
-    #     """
-    #     Function will insert variable with name and value in a variable collection in MongoDB.
-    #     The type control should not be done in this function.
-    #     :param name: String for variable name
-    #     :param value: Value which can be of many types.
-    #     :return: None
-    #     """
-    #     self.__variables.update_one({}, {"$set": {name: value}})
-    #
-    # async def get_variable_from_variables(self, name: str) -> Optional[object]:
-    #     """
-    #     Function will try to get value from a database of given name.
-    #     None when doesn't exist.
-    #     :param name: Name of variable in DB
-    #     :return: Variable value or None
-    #     """
-    #     try:
-    #         return self.__variables.find_one()[name]
-    #     except KeyError:
-    #         return None
-    #
-    # async def insert_reminder(self, user_id: int, date: datetime, reminder_text: str) -> None:
-    #     """
-    #     Inserts reminder in a database.
-    #     :param user_id: ID of user
-    #     :param date: Date of reminder
-    #     :param reminder_text: Text to remind
-    #     :return: None
-    #     """
-    #     self.__reminder_messages.insert_one({"user_id": user_id, "date": date, "text": reminder_text})
-    #
-    # async def get_all_variables_names(self) -> list:
-    #     """
-    #     This function will return all the names from variables collection.
-    #     :return: List
-    #     """
-    #
-    #     dict_variables = list(self.__variables.find())[0]  # Why the fuck there is no way to directly make it dict
-    #
-    #     return list(dict_variables.keys())[1:]
 
 
 class InvalidVariablesCount(Exception):
