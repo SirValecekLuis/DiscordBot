@@ -143,7 +143,7 @@ class AutoVoice(commands.Cog):
             return
 
         if storage == "db":
-            await db.update_one("variables", {}, {"$set": {"voice_channel_id": auto_channel_id}})
+            await db.update_one("variables", {}, {"voice_channel_id": auto_channel_id})
             self.channel_id = auto_channel_id
             await ctx.respond("Hodnota nastavena do databáze.", ephemeral=True)
             return
