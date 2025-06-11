@@ -44,7 +44,7 @@ class CounterLeaderboard(commands.Cog):
         """
         # retrieves counter-stats from the database, sums them and sorts them
         leaderboard = await get_leaderboard(
-            list(db.counter.find({}, {"_id": 0, "id": 1, "counter_tobias": 1, "counter_poli": 1})),
+            await db.find("counter", {}, {"_id": 0, "id": 1, "counter_tobias": 1, "counter_poli": 1}),
         )
 
         # sets the limit on how many entries will be displayed

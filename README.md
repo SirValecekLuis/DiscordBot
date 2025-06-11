@@ -54,7 +54,7 @@ discordbot/
 
 # Pravidla a jak příspívat do projektu
 
-Na stránkách discordu pro developery si vytvořte vlastního bota, kde dostanete svůj bot token a vytvořte si i vlastní discord server
+Na stránkách discordu (https://discord.com/developers/applications) pro developery si vytvořte vlastního bota, kde dostanete svůj bot token a vytvořte si i vlastní discord server
 pro potřeby testování vašeho bota.
 
 - V adresáři /DiscordBot se musí nachází .env soubor, který obsahuje 2 řádky, které je potřeba vyplnit.
