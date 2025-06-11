@@ -54,8 +54,14 @@ discordbot/
 
 # Pravidla a jak příspívat do projektu
 
-Testovací discord s tokenem můžete dostat při požádání uživatele `Tobias(tobias4042)` na discordu FEI pro usnadnění
-práce. Taktéž vám v rychlosti vysvětlím strukturu a způsob fungování bota, pokud se chcete podílet na vývoji.
+Na stránkách discordu pro developery si vytvořte vlastního bota, kde dostanete svůj bot token a vytvořte si i vlastní discord server
+pro potřeby testování vašeho bota.
+
+- V adresáři /DiscordBot se musí nachází .env soubor, který obsahuje 2 řádky, které je potřeba vyplnit.
+- BOT_TOKEN="TOKEN" 
+(ten získáte ze stránky Discordu kde si vytvoříte vlastního bota)
+- DATABASE_LOGIN="LOGIN_STRING" [|-> NÁVOD <-|](docker_local_dev/mongoDB/README.md)
+
 
 ## 📚 Pravidla pro moduly (soubory ve složce `bot`)
 
