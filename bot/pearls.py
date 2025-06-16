@@ -26,23 +26,40 @@ class Pearls(commands.Cog):
         """
         pearls = await self.get_all_pearls()
         # Exclude _id from output
-        db_pearls = list(db.pearls.find({}, {"_id": 0}))
+        db_pearls = await db.find("pearls", {}, {"_id": 0})
         pearls = self.diff_pearls(pearls, db_pearls)
+
         if len(pearls) > 0:
-            db.pearls.insert_many(pearls)
-            channel_id = 1078965904093745252
-            channel = self.bot.get_channel(channel_id) or await self.bot.fetch_channel(channel_id)
+            await db.insert_many("pearls", pearls)
+            apps_channel_id = await db.find_one("variables", {}, "apps_channel_id")
+
+            # Get the ID of channel and warn that bot_channel_id or apps_channel_id does not exist
+            if apps_channel_id is None:
+                bot_channel_id = await db.find_one("variables", {}, "bot_channel_id")
+                if bot_channel_id is None:
+                    raise Exception("bot_channel_id není nastaveno.")
+                bot_channel = self.bot.get_channel(bot_channel_id) or await self.bot.fetch_channel(bot_channel_id)
+                await bot_channel.send("apps_channel_id není nastaveno!")
+                return
+
+            apps_channel = self.bot.get_channel(apps_channel_id) or await self.bot.fetch_channel(apps_channel_id)
             pluralized = "nové perly" if len(pearls) > 1 else "nová perla"
             message = f"## :skull: Přichází {pluralized}! :skull:\n"
+
+            # If this is first insertion in DB, we wont print anything
+            if len(db_pearls) == 0:
+                return
+
             for pearl in pearls:
                 # Send as quoted message
                 answer = "> " + pearl["answer"].replace("\n", "\n> ")
                 # If answers are longer than 2000 characters, send multiple messages
                 if len(message) + len(answer) >= 2000:
-                    await channel.send(message)
+                    await apps_channel.send(message)
                     message = ""
                 message += answer + "\n\n"
-            await channel.send(message)
+
+            await apps_channel.send(message)
 
     def diff_pearls(self, lst1: Answers, lst2: Answers) -> Answers:
         """Compares list of answers from the website and from the database.
