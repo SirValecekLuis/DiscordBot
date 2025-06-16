@@ -42,13 +42,13 @@ class Pearls(commands.Cog):
                 await bot_channel.send("apps_channel_id není nastaveno!")
                 return
 
-            apps_channel = self.bot.get_channel(apps_channel_id) or await self.bot.fetch_channel(apps_channel_id)
-            pluralized = "nové perly" if len(pearls) > 1 else "nová perla"
-            message = f"## :skull: Přichází {pluralized}! :skull:\n"
-
             # If this is first insertion in DB, we wont print anything
             if len(db_pearls) == 0:
                 return
+
+            apps_channel = self.bot.get_channel(apps_channel_id) or await self.bot.fetch_channel(apps_channel_id)
+            pluralized = "nové perly" if len(pearls) > 1 else "nová perla"
+            message = f"## :skull: Přichází {pluralized}! :skull:\n"
 
             for pearl in pearls:
                 # Send as quoted message
