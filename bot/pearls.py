@@ -24,6 +24,17 @@ class Pearls(commands.Cog):
         """Task loop for checking new pearls on the website.
         :return: None
         """
+
+        # Get the ID of channel and warn that bot_channel_id or apps_channel_id does not exist
+        apps_channel_id = await db.find_one("variables", {}, "apps_channel_id")
+        if apps_channel_id is None:
+            bot_channel_id = await db.find_one("variables", {}, "bot_channel_id")
+            if bot_channel_id is None:
+                raise Exception("bot_channel_id není nastaveno.")
+            bot_channel = self.bot.get_channel(bot_channel_id) or await self.bot.fetch_channel(bot_channel_id)
+            await bot_channel.send("apps_channel_id není nastaveno!")
+            return
+
         pearls = await self.get_all_pearls()
         # Exclude _id from output
         db_pearls = await db.find("pearls", {}, {"_id": 0})
@@ -31,16 +42,6 @@ class Pearls(commands.Cog):
 
         if len(pearls) > 0:
             await db.insert_many("pearls", pearls)
-            apps_channel_id = await db.find_one("variables", {}, "apps_channel_id")
-
-            # Get the ID of channel and warn that bot_channel_id or apps_channel_id does not exist
-            if apps_channel_id is None:
-                bot_channel_id = await db.find_one("variables", {}, "bot_channel_id")
-                if bot_channel_id is None:
-                    raise Exception("bot_channel_id není nastaveno.")
-                bot_channel = self.bot.get_channel(bot_channel_id) or await self.bot.fetch_channel(bot_channel_id)
-                await bot_channel.send("apps_channel_id není nastaveno!")
-                return
 
             # If this is first insertion in DB, we wont print anything
             if len(db_pearls) == 0:
