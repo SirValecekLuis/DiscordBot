@@ -78,7 +78,7 @@ class Pearls(commands.Cog):
         pearl = random.choice(pearls)
         message = "> " + pearl["answer"].replace("\n", "\n> ")
         if pearl["login"] is not None:
-            message += f"\n\n||{pearl["login"]}||"
+            message += "\n\n||" + pearl["login"] + "||"
         await ctx.respond(message)
 
     def diff_pearls(self, lst1: Answers, lst2: Answers) -> Answers:
