@@ -21,10 +21,14 @@ class Database:
             self.__variables: pymongo.collection.Collection = self.__db.Variables
             # For reminder messages
             self.__reminder_messages: pymongo.collection.Collection = self.__db.ReminderMessages
+            # APPS pearls
+            self.__pearls: pymongo.collection.Collection = self.__db.Pearls
+
 
             self.collections = {"counter": self.__counter,
                                 "variables": self.__variables,
-                                "reminder_messages": self.__reminder_messages
+                                "reminder_messages": self.__reminder_messages,
+                                "pearls": self.__pearls
                                 }
 
             count = self.__variables.count_documents({})
@@ -60,10 +64,24 @@ class Database:
         """
 
         if collection_name == "variables":
-            raise Exception("Kolekce 'variables' je určena pouze pro update_one a ne insert_one.")
+            raise Exception("Kolekce 'variables' je určena pouze pro update_one a ne insert_one nebo insert many.")
 
         collection = await self.__get_collection_from_str(collection_name)
         collection.insert_one(data)
+
+    async def insert_many(self, collection_name: str, data: list[dict]) -> None:
+        """
+        Inserts many documents in one command in the collection.
+
+        :param collection_name: string name of collection based on self.collections
+        :param data: List of dictionaries
+        """
+
+        if collection_name == "variables":
+            raise Exception("Kolekce 'variables' je určena pouze pro update_one a ne insert_one nebo insert many.")
+
+        collection = await self.__get_collection_from_str(collection_name)
+        collection.insert_many(data)
 
     async def update_one(self, collection_name: str, filter_dict: dict, update: dict) -> None:
         """
