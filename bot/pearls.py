@@ -1,9 +1,9 @@
 """Cog for detecting and posting new pearls (funny answers from APPS subject)."""
 
 from typing import Dict, List, Optional, TypeAlias
+import random
 import discord
 import aiohttp
-import random
 from discord.ext import commands, tasks
 from bs4 import BeautifulSoup, Comment
 
