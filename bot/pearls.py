@@ -1,6 +1,7 @@
 """Cog for detecting and posting new pearls (funny answers from APPS subject)."""
 
 from typing import Dict, List, Optional, TypeAlias
+import random
 import discord
 import aiohttp
 from discord.ext import commands, tasks
@@ -61,6 +62,24 @@ class Pearls(commands.Cog):
                 message += answer + "\n\n"
 
             await apps_channel.send(message)
+
+    @commands.slash_command(name="pearl", description="Vygeneruje náhodnou perlu z předmětu APPS")
+    async def random_pearl(
+        self,
+        ctx: discord.ApplicationContext
+    ) -> None:
+        """Slash command that sends randomly generated pearl from the database.
+
+        :param ctx: Context of slash command
+        :return: None
+        """
+        # Exclude _id from output
+        pearls = await db.find("pearls", {}, {"_id": 0})
+        pearl = random.choice(pearls)
+        message = "> " + pearl["answer"].replace("\n", "\n> ")
+        if pearl["login"] is not None:
+            message += "\n\n||" + pearl["login"] + "||"
+        await ctx.respond(message)
 
     def diff_pearls(self, lst1: Answers, lst2: Answers) -> Answers:
         """Compares list of answers from the website and from the database.
