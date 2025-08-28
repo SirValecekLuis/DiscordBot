@@ -2,12 +2,28 @@
 
 import asyncio
 import math
+import re
 
 import discord
 from discord.ext import commands
 
 from error_handling import send_error_message_to_user
 from start import db
+
+
+def get_semester_year(category_name: list[str]) -> int:
+    """Returns the year of the semester based on the category name.
+    :param category_name: List of strings that represent the category name split by spaces
+    :return: Year of the semester as an integer
+    """
+    first_char = category_name[0][0]
+
+    if first_char == "n":  # Category name is .lowered()
+        num_to_ceil = int(category_name[0][1]) + 6  # N1. semestr = 7/2 = ceil(3.5) = 4. year
+    else:
+        num_to_ceil = int(first_char)  # Else just convert the first char to int and decide the year
+
+    return math.ceil(num_to_ceil / 2)  # N1. semestr or 1. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
 
 
 async def switch_to_active(category: discord.CategoryChannel, category_name: list, visited_categories: list) -> None:
@@ -18,9 +34,9 @@ async def switch_to_active(category: discord.CategoryChannel, category_name: lis
     Allows To Send Messages, Send Messages in Threads and Create Private/Public threads for everyone
     """
     # role_id of the given semester category
-    year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
+    year = get_semester_year(category_name)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
     role_to_search = f"{year}_year_role_id"
-    role_id = await db.get_variable_from_variables(role_to_search)
+    role_id = await db.find_one("variables", {}, role_to_search)
     if role_id is None:
         raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
 
@@ -36,7 +52,7 @@ async def switch_to_active(category: discord.CategoryChannel, category_name: lis
     )
 
     # Name of a channel
-    name = category_name[0] + " " + category_name[1]
+    name = category.name.split(" - ")[0]    # remove - archiv
 
     # Final edit of category
     visited_categories.append(category)
@@ -55,9 +71,9 @@ async def switch_to_archived(category: discord.CategoryChannel, category_name: l
     Resets View Channel for everyone to its default state
     """
     # role_id of the given semester category
-    year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
+    year = get_semester_year(category_name)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year
     role_to_search = f"{year}_year_role_id"
-    role_id = await db.get_variable_from_variables(role_to_search)
+    role_id = await db.find_one("variables", {}, role_to_search)
     if role_id is None:
         raise Exception(f"Role s daným názvem {role_to_search} nebyla nalezena v DB.")
     role_from_db = category.guild.get_role(role_id)
@@ -112,11 +128,11 @@ async def sort_categories(ctx: discord.ApplicationContext) -> None:
             return
 
         # sorted by ascending order by first number (x. semestr)
-        archived_categories.sort(key=lambda category: int(category.name[0]), reverse=True)
-        active_categories.sort(key=lambda category: int(category.name[0]), reverse=True)
+        archived_categories.sort(key=lambda category: get_semester_year(category.name.lower().split()), reverse=True)
+        active_categories.sort(key=lambda category: get_semester_year(category.name.lower().split()), reverse=True)
 
         # get id to get a channel
-        voice_category_id = await db.get_variable_from_variables("voice_category_id")
+        voice_category_id = await db.find_one("variables", {}, "voice_category_id")
         if voice_category_id is None:
             raise Exception("voice_category_id nebylo nastaveno do databáze.")
 
@@ -235,7 +251,7 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
         "Proměnné jsou typu INT, tedy celé číslo.\n\n"
         "ID studentských rolí se ukládají pod názvem **x_year_role_id**, kde 'x' je nahrazeno ročníkem dané role."
         "Takže například 1_year_role_id by byl název proměnné kam uložit ID pro roli prváka.\n\n"
-        "Pro 'voice_channels' kategorii je potřeba uložit ID kategorie pod proměnnou **voice_category_id**. "
+        "Pro 'voice_channels' kategorii je potřeba uložit ID kategorie pod proměnnou **voice_category_id** (INT). "
         "Toho lze docílit příkazem /insert-or-update-value, kterým lze nastavit nebo aktualizovat proměnné.\n\n"
         "Taktéž příkaz /print-value-from-db dokáže vypsat hodnotu jednotlivé proměnné pro kontrolu správnosti. "
         "Pro vypsání názvů všech uložených proměnných v DB lze využít příkaz /print-names-from-db.\n\n"
@@ -243,6 +259,8 @@ async def warn_user(ctx: discord.ApplicationContext) -> bool:
         "**Taktéž názvy channelů musí být přesně ve tvaru 'x. semestr' a nebo 'x. semestr - archiv'. "
         "Aktuálně je implementace omezená pouze na to, že funguje na semestry s čísly 0-9, tudíž channely s názvem "
         "10. semestr a dále prozatím nejsou podporovány.**\n\n"
+        "Pro inženýrské ročníky je používání N1. semestr a N2. semestr stejné jako pro jiné ročníky. Role se ukládá "
+        "pod název 4_year_role_id nebo 5_year_role_id.\n\n"
         f"*Příkaz bude po {timeout_time // 60} minutách automaticky odmítnut a nebude proveden.*",
         view=view,
     )
@@ -283,12 +301,10 @@ async def assert_variables(ctx: discord.ApplicationContext) -> bool:
         for category in ctx.guild.categories:
             category_name = category.name.lower().split()
 
-            if (len(category_name[0]) == 2 and category_name[1] == "semestr" and
-                    (len(category_name) == 2 or category_name[3] == "archiv")):
-
-                year = math.ceil(int(category_name[0][0]) / 2)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
+            if await is_semester_active(category_name) or await is_semester_archived(category_name):
+                year = get_semester_year(category_name)  # [1]. semestr = 1/2 = ceil(0.5) = 1. year || 0-9 only
                 role_to_search = f"{year}_year_role_id"
-                role_id = await db.get_variable_from_variables(role_to_search)
+                role_id = await db.find_one("variables", {}, role_to_search)
 
                 if role_id is None:
                     raise AssertionError(f"Nenalezeno ID role {role_to_search} v DB.")
@@ -297,7 +313,7 @@ async def assert_variables(ctx: discord.ApplicationContext) -> bool:
                     ids.append(role_id)
 
         # Check voice_category_id is set
-        voice_id = await db.get_variable_from_variables("voice_category_id")
+        voice_id = await db.find_one("variables", {}, "voice_category_id")
         if voice_id is None:
             raise AssertionError("voice_category_id nenalezeno v databázi.")
 
@@ -327,6 +343,48 @@ async def assert_variables(ctx: discord.ApplicationContext) -> bool:
         return False
 
 
+async def get_semester_info(category_name: list[str]) -> int:
+    """
+    This function will return:
+    0 - Not a semester category
+    1 - Active semester category
+    2 - Archived semester category
+    :param category_name: List of strings that represent the category name split by spaces
+    :return: 0, 1 or 2 based on the regex match
+    """
+    pattern = re.compile(r"^(n?\d+\. semestr)( - archiv)?$")
+
+    match = pattern.match(" ".join(category_name))
+    if match is None:
+        return 0
+
+    if len(match.groups()) == 2 and match.groups()[1] is None:
+        return 1
+
+    if len(match.groups()) == 2 and match.groups()[1] is not None:
+        return 2
+
+    return 0
+
+
+async def is_semester_active(category_name: list[str]) -> bool:
+    """
+    This function will return True if the category is an active semester category.
+    :param category_name: List of strings that represent the category name split by spaces
+    :return: True if active semester category, else False
+    """
+    return await get_semester_info(category_name) == 1
+
+
+async def is_semester_archived(category_name: list[str]) -> bool:
+    """
+    This function will return True if the category is an archived semester category.
+    :param category_name: List of strings that represent the category name split by spaces
+    :return: True if archived semester category, else False
+    """
+    return await get_semester_info(category_name) == 2
+
+
 class SemesterSwitching(commands.Cog):
     """This class represents a cog that will handle semester switching."""
 
@@ -353,11 +411,11 @@ class SemesterSwitching(commands.Cog):
             await ctx.defer(ephemeral=True)
 
             # If was not accepted, stop the command
-            if await warn_user(ctx) is False:
+            if not await warn_user(ctx):
                 return
 
             # First assert everything is correct and ready for the command after admin approves the command
-            if await assert_variables(ctx) is False:
+            if not await assert_variables(ctx):
                 return
 
             # Go through all the categories
@@ -365,11 +423,10 @@ class SemesterSwitching(commands.Cog):
                 category_name = category.name.lower().split()
 
                 # The Semester is active and should be put as archived
-                if len(category_name[0]) == 2 and category_name[1] == "semestr" and len(category_name) == 2:
+                if await is_semester_active(category_name):
                     await switch_to_archived(category, category_name, visited_categories)
-
                 # The Semester is archived and should be put as active
-                elif len(category_name[0]) == 2 and category_name[1] == "semestr" and category_name[3] == "archiv":
+                elif await is_semester_archived(category_name):
                     await switch_to_active(category, category_name, visited_categories)
 
             # Sort categories, called after all names, perms and roles were switched
@@ -379,13 +436,14 @@ class SemesterSwitching(commands.Cog):
         except discord.HTTPException as e:
             text = " | ".join([category.name for category in visited_categories])
             if len(visited_categories) == 0:
-                text = "NO CATEGORIES"
+                text = "NO CATEGORIES."
             raise Exception(
                 "API neodpovědělo do 15 minut. Channely, které mohly být ovlivněny, jsou vypsány společně s"
                 "chybovou hláškou, která stála za pád tohoto commandu. " + text + " " + str(e),
             ) from e
         except Exception as e:
             text = " | ".join([category.name for category in visited_categories])
+            text = text if text != "" else "ŽÁDNÉ NEBYLY OVLIVNĚNY."
             raise Exception(
                 "Něco selhalo. Teoreticky ovlivněné kategorie + chybová hláška bude vypsána. KATEGORIE: "
                 + text
