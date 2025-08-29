@@ -76,7 +76,7 @@ class DatabaseCommunication(commands.Cog):
                 "Proměnná s tímto názvem nebyla nalezena. "
                 "Použijte příkaz /print-names-from-db pro veškeré názvy proměnných aktuálně v DB.", ephemeral=True)
         else:
-            await ctx.respond(f"Proměnná se jménem {name} má hodnotu |{value}|.", ephemeral=True)
+            await ctx.respond(f"Proměnná se jménem {name} má hodnotu >{value}< s typem {type(value)}.", ephemeral=True)
 
     @commands.slash_command(name="print-names-from-db",
                             description="Tento příkaz ti vypíše všechny názvy proměnných v DB.")
