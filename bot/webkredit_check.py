@@ -81,7 +81,22 @@ class Webkredit(commands.Cog):
                 await db.delete_one("webkredit", {"_id": meal["_id"]})
 
     @commands.slash_command(name="webkredit", description="Zaregistruj si hlídáček na oběd v menze!")
-    async def webkredit(self, ctx: discord.ApplicationContext, date: str, meals: str) -> None:
+    async def webkredit(self, ctx: discord.ApplicationContext,
+                        date: discord.Option(
+                            str,
+                            description="Datum ve formátu den.měsíc.rok, např. 25.10.2025",
+                            required=True,
+                            name="datum",
+                            min_length=8,
+                            max_length=10),
+                        meals: discord.Option(
+                            str,
+                            description="Čísla jídel oddělená čárkou, např. 1,2,3 (maximálně 10 jídel)",
+                            required=True,
+                            name="jídla",
+                            min_length=1,
+                            max_length=100
+                        )) -> None:
         """This command registers a user for webkredit meal notifications.
         :return: None
         """
