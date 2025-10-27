@@ -147,7 +147,8 @@ class Webkredit(commands.Cog):
                     formatted_string_meals += f"{str(meal)}\n"
 
         await ctx.user.send(
-            f"Tvoje hlídání obědů v menze bylo úspěšně zaregistrováno! Pro zrušení tohoto hlídání pošli botovi zprávu !{req_id}\n"
+            f"Tvoje hlídání obědů v menze bylo úspěšně zaregistrováno! "
+            f"Pro zrušení tohoto hlídání pošli botovi zprávu **!{req_id}**\n"
             f"Na den {day}.{month}.{year} budou hlídána tato jídla: \n{formatted_string_meals}")
 
         await ctx.respond("Hlídání obědů bylo úspěšně zaregistrováno! Podrobnosti ti byly poslány do DM.",
