@@ -5,3 +5,4 @@ audioop-lts; python_version>='3.13'
 aiohttp~=3.12.9
 beautifulsoup4~=4.13.4
 html5lib~=1.1
+webkredit-sniper @ git+https://github.com/SirValecekLuis/WebKreditSniper.git
