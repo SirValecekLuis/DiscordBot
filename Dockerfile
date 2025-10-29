@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY . .
 
+RUN apk add --no-cache git
+
 RUN pip install -r requirements.txt
 
 CMD [ "python", "start.py" ]
