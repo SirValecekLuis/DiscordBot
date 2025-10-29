@@ -23,12 +23,14 @@ class Database:
             self.__reminder_messages: pymongo.collection.Collection = self.__db.ReminderMessages
             # APPS pearls
             self.__pearls: pymongo.collection.Collection = self.__db.Pearls
-
+            # Webkredit meals
+            self.__webkredit: pymongo.collection.Collection = self.__db.Webkredit
 
             self.collections = {"counter": self.__counter,
                                 "variables": self.__variables,
                                 "reminder_messages": self.__reminder_messages,
-                                "pearls": self.__pearls
+                                "pearls": self.__pearls,
+                                "webkredit": self.__webkredit
                                 }
 
             count = self.__variables.count_documents({})
@@ -142,6 +144,17 @@ class Database:
             result = list(collection.find())
 
         return result
+
+    async def delete_one(self, collection_name: str, filter_dict: dict) -> None:
+        """
+        Deletes one document from a collection based on filter dictionary.
+
+        :param collection_name: string name of collection based on self.collections
+        :param filter_dict: dictionary with filter parameters for deletion
+        """
+
+        collection = await self.__get_collection_from_str(collection_name)
+        collection.delete_one(filter_dict)
 
 
 class InvalidVariablesCount(Exception):
