@@ -47,7 +47,6 @@ class Webkredit(commands.Cog):
         :return: None
         """
         for meal in await db.find("webkredit", {}):
-            print(meal)
             user: discord.User = self.bot.get_user(meal["user_id"])
             year = meal["year"]
             month = meal["month"]
@@ -69,7 +68,8 @@ class Webkredit(commands.Cog):
             if available_meals:
                 meal_list = "\n".join(
                     [f"Jídlo {meal.number}. {meal.name} "
-                     f"(Dostupných porcí: {meal.available if meal.available is not None else 'neomezeno'})"
+                     f"(Dostupných porcí: {meal.available if meal.available is not None else 'neomezeno'}) "
+                     f"Burza: {'ano' if meal.in_exchange else 'ne'}"
                      for meal in available_meals])
                 if user is not None:
                     try:
