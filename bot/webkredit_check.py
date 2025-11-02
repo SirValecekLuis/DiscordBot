@@ -11,6 +11,103 @@ from error_handling import send_error_message_to_user
 from start import db
 
 
+class DatePickerView(discord.ui.View):
+    """A view with buttons for picking a date."""
+
+    def __init__(self, user: discord.User):
+        super().__init__(timeout=60)
+        days_cz = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"]
+        today = datetime.date.today()
+        result = []
+        current_day = today
+
+        # Get next 5 weekdays
+        while len(result) < 5:
+            weekday = current_day.weekday()
+            if weekday < 5:
+                result.append(current_day)
+            current_day += datetime.timedelta(days=1)
+
+        # Format the day name and date
+        result = [(days_cz[d.weekday()], d.strftime("%d.%m.%Y")) for d in result]
+        for name, d in result:
+            label = f"{name} {d}"
+            self.add_item(DateButton(label=label, value=d, user=user))
+
+
+class MealPickerSelect(discord.ui.Select):
+    """A select menu for picking meals to monitor."""
+
+    def __init__(self, meals: list[api.Meal], date_str: str, user: discord.User):
+        self.date_str = date_str
+        self.user = user
+
+        options = []
+        for meal in meals:
+            label = f"{'XXL' if meal.is_xxl else ''} {meal.number}. {meal.name}"
+            if len(label) > 100:
+                label = label[:97] + "..."
+            options.append(discord.SelectOption(label=label, value=str(meal.number)))
+
+        super().__init__(
+            placeholder="Vyber jídla, které chceš hlídat",
+            min_values=1,
+            max_values=len(options),
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        selected_meals = self.values
+        req_id = str(uuid.uuid4())[:12]
+
+        await interaction.response.edit_message(
+            content=f"Jakmile jedno z jídel {', '.join(selected_meals)} bude dostupné, dostaneš zprávu!"
+                    f"\nPokud budeš chtít hlídání zrušit, napiš soukromou zprávu botovi do které napíšeš **!{req_id}**",
+            view=None)
+
+        # Register the meal notification
+        day, month, year = list(map(int, self.date_str.split(".")))
+        selected_meals = [int(meal) for meal in selected_meals]
+        await db.insert_one("webkredit",
+                            {"user_id": self.user.id, "year": year, "month": month, "day": day,
+                             "meal_numbers": selected_meals, "req_id": req_id})
+
+
+class MealPickerView(discord.ui.View):
+    """A view containing the meal picker select menu."""
+
+    def __init__(self, meals: list[api.Meal], date_str: str, user: discord.User):
+        super().__init__(timeout=60)
+        self.add_item(MealPickerSelect(meals, date_str, user))
+
+
+class DateButton(discord.ui.Button):
+    """A button representing a specific date."""
+
+    def __init__(self, label: str, value: str, user: discord.User):
+        super().__init__(label=label, style=discord.ButtonStyle.primary)
+        self.value = value
+        self.user = user
+
+    async def callback(self, interaction: discord.Interaction):
+        day, month, year = list(map(int, self.value.split(".")))
+        url = api.get_webkredit_url(year, month, day)
+        meals = api.get_meals(url)
+
+        if len(meals) == 0:
+            await interaction.response.send_message(
+                f"❌ Pro zadaný den **{self.value}** není jídelníček. Pravděpodobně jde o státní svátek.", ephemeral=True
+            )
+            return
+
+        meal_view = MealPickerView(meals, self.value, self.user)
+
+        # Edit the original message instead of creating a new one
+        await interaction.response.edit_message(
+            content="Vyber si jídlo, které chceš hlídat:", view=meal_view
+        )
+
+
 class Webkredit(commands.Cog):
     """This cog is for webkredit related commands."""
 
@@ -37,7 +134,7 @@ class Webkredit(commands.Cog):
 
                 if meal["user_id"] == message.author.id:
                     await db.delete_one("webkredit", {"_id": meal["_id"]})
-                    await message.channel.send("Tvoje hlídání obědů bylo zrušeno.")
+                    await message.channel.send("Tvoje hlídání obědů s tímto ID bylo zrušeno.")
                 else:
                     await message.channel.send("Nemáš právo na smazání těchto obědů.")
 
@@ -81,23 +178,9 @@ class Webkredit(commands.Cog):
                 await db.delete_one("webkredit", {"_id": meal["_id"]})
 
     @commands.slash_command(name="webkredit", description="Zaregistruj si hlídáček na oběd v menze!")
-    async def webkredit(self, ctx: discord.ApplicationContext,
-                        date: discord.Option(
-                            str,
-                            description="Datum ve formátu den.měsíc.rok, např. 25.10.2025",
-                            required=True,
-                            name="datum",
-                            min_length=8,
-                            max_length=10),
-                        meals: discord.Option(
-                            str,
-                            description="Čísla jídel oddělená čárkou, např. 1,2,3 (maximálně 10 jídel)",
-                            required=True,
-                            name="jídla",
-                            min_length=1,
-                            max_length=100
-                        )) -> None:
-        """This command registers a user for webkredit meal notifications.
+    async def webkredit(self, ctx: discord.ApplicationContext) -> None:
+        """An interactive version of the webkredit command using dropdowns and date picker.
+        :param ctx: Context of slash command
         :return: None
         """
         # Check that user has maximum 3 active webkredit notifications
@@ -107,52 +190,9 @@ class Webkredit(commands.Cog):
             await ctx.respond("Máš už maximální počet 3 aktivních hlídačků na obědy.", ephemeral=True)
             return
 
-        # Validate date
-        year, month, day = api.get_day_check(date)
-        if year is None or month is None or day is None:
-            await ctx.respond("Neplatný formát data. Použij formát 25.10.2025", ephemeral=True)
-            return
-
-        # Check that date is not in the past
-        date = datetime.date.fromisoformat(f"{year}-{month:02}-{day:02}")
-        if datetime.date.today() > date:
-            await ctx.respond("Datum nemůže být v minulosti.", ephemeral=True)
-            return
-
-        # Validate meal numbers
-        meal_numbers = api.get_meal_numbers_check(meals.split(","))
-        if meal_numbers is None:
-            await ctx.respond(
-                "Neplatný formát čísel jídel. Použij čísla oddělená čárkou, např. 1,2,3 a čísla mohou být v rozsahu 1-10 pouze.",
-                ephemeral=True)
-            return
-
-        # Check that meals are available for the given day
-        url = api.get_webkredit_url(year, month, day)
-        available_meals = api.get_meals(url)
-        if len(available_meals) == 0:
-            await ctx.respond("Pro zadaný den není jídelníček.", ephemeral=True)
-            return
-
-        # Register the meal notification
-        req_id = str(uuid.uuid4())[:12]
-        await db.insert_one("webkredit", {"user_id": ctx.author.id, "year": year, "month": month, "day": day,
-                                          "meal_numbers": meal_numbers, "req_id": req_id})
-
-        # Send confirmation to user via DM and print the meals being monitored that user requested
-        formatted_string_meals = ""
-        for number in meal_numbers:
-            for meal in available_meals:
-                if meal.number == number:
-                    formatted_string_meals += f"{str(meal)}\n"
-
-        await ctx.user.send(
-            f"Tvoje hlídání obědů v menze bylo úspěšně zaregistrováno! "
-            f"Pro zrušení tohoto hlídání pošli botovi zprávu **!{req_id}**\n"
-            f"Na den {day}.{month}.{year} budou hlídána tato jídla: \n{formatted_string_meals}")
-
-        await ctx.respond("Hlídání obědů bylo úspěšně zaregistrováno! Podrobnosti ti byly poslány do DM.",
-                          ephemeral=True)
+        view = DatePickerView(ctx.user)
+        await ctx.respond("Vyber si den s obědem a musíš mít povolené soukromé zprávy, aby tě bot mohl kontaktovat.",
+                          ephemeral=True, view=view)
 
     async def cog_command_error(self, ctx: discord.ApplicationContext, error: commands.CommandError) -> None:
         """Handles all errors that can happen in a cog and then sends them to send_error_message_to_user to deal with
